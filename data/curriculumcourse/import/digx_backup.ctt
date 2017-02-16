@@ -1,0 +1,25 @@
+Name: Digx
+Courses: 3
+Rooms: 2
+Days: 10
+Periods_per_day: 8
+Curricula: 2
+Constraints: 1
+
+COURSES:
+ABAP_Objects S.Weemaels 21 1 5   2
+Java_EE K.V.Ryckegem 1 1 5		1	
+Networking B.Drabbé 1 1 5		1
+
+ROOMS:
+A	90
+B	110
+
+CURRICULA:
+DigX3_Bizit    2  ABAP_Objects Java_EE
+DigX3_Network  2  Java_EE Networking
+
+UNAVAILABILITY_CONSTRAINTS:
+Java_EE 0 1
+
+END.
