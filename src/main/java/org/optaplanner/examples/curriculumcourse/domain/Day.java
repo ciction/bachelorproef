@@ -41,6 +41,7 @@ public class Day extends AbstractPersistable {
         }
         List weekdaysList = new ArrayList();
         weekdaysList =  Arrays.asList(WEEKDAYS);
+        //dagen in de array juist zetten (offset rotation) zodat de eerste dag in da array de eerste dag van de week is
         Collections.rotate(weekdaysList, - (SchedulerSettings.startDay -1));
         isInitialized = true;
     }
