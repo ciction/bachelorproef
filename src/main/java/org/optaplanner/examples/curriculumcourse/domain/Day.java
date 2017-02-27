@@ -16,6 +16,9 @@
 
 package org.optaplanner.examples.curriculumcourse.domain;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -24,9 +27,16 @@ import org.optaplanner.examples.common.domain.AbstractPersistable;
 @XStreamAlias("Day")
 public class Day extends AbstractPersistable {
 
-    private static final String[] WEEKDAYS = {"Mo", "Tu", "We", "Th", "Fr", "Sat", "Sun"};
+
+    private static  String[] WEEKDAYS = {"Mo", "Tu", "We", "Th", "Fr", "Sat", "Sun"};
+    private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+    private static final Date today = new Date();
+//    private static final String todayString = dateFormat.format(today);
+
 
     private int dayIndex;
+    private Date date;
+    private String dateString;
 
     private List<Period> periodList;
 
@@ -36,6 +46,13 @@ public class Day extends AbstractPersistable {
 
     public void setDayIndex(int dayIndex) {
         this.dayIndex = dayIndex;
+        this.date  = new Date(SchedulerSettings.startDate.getTime() + (1000 * 60 * 60 * 24 * dayIndex));
+        this.dateString = dateFormat.format(this.date);
+
+        if(SchedulerSettings.language.equals(SchedulerSettings.Language.Dutch)){
+            this.WEEKDAYS = new String[]{"Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"};
+        }
+
     }
 
     public List<Period> getPeriodList() {
@@ -48,9 +65,10 @@ public class Day extends AbstractPersistable {
 
     public String getLabel() {
         String weekday = WEEKDAYS[dayIndex % WEEKDAYS.length];
-        if (dayIndex > WEEKDAYS.length) {
-            return "Day " + dayIndex;
-        }
+        weekday = weekday + " " + dateString;
+//        if (dayIndex > WEEKDAYS.length) {
+//            return "Day " + dayIndex;
+//        }
         return weekday;
     }
 
