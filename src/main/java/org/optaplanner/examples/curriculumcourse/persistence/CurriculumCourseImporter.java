@@ -481,6 +481,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
             }
 
+            //todo unavailable days via ctt files
             //custom hardcoded unavailable days
             UnavailableDay unavailableDay = new UnavailableDay();
             int UnavailableDayListSize = 1;
