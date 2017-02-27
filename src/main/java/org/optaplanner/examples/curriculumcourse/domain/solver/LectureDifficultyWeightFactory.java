@@ -25,6 +25,7 @@ import org.optaplanner.examples.curriculumcourse.domain.UnavailablePeriodPenalty
 
 public class LectureDifficultyWeightFactory implements SelectionSorterWeightFactory<CourseSchedule, Lecture> {
 
+
     public Comparable createSorterWeight(CourseSchedule schedule, Lecture lecture) {
         Course course = lecture.getCourse();
         int unavailablePeriodPenaltyCount = 0;

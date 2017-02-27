@@ -18,11 +18,10 @@ package org.optaplanner.examples.curriculumcourse.persistence;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import org.optaplanner.core.api.domain.solution.Solution;
 import org.optaplanner.examples.common.persistence.AbstractTxtSolutionImporter;
@@ -477,8 +476,31 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                 }
                 penalty.setPeriod(period);
                 penaltyList.add(penalty);
+
+
+
             }
+
+            //custom hardcoded unavailable days
+            UnavailableDay unavailableDay = new UnavailableDay();
+            int UnavailableDayListSize = 1;
+            List<UnavailableDay> unavailableDayList = new ArrayList<UnavailableDay>(UnavailableDayListSize);
+
+            String target = "01/03/2017";
+            DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+            try {
+                Date date =  df.parse(target);
+                unavailableDay.setDay(1);
+                unavailableDay.setDate(date);
+                unavailableDay.setId((long) 0);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            unavailableDayList.add(unavailableDay);
+
+
             schedule.setUnavailablePeriodPenaltyList(penaltyList);
+            schedule.setUnavailableDayList(unavailableDayList);
         }
 
         private void createLectureList(CourseSchedule schedule) {

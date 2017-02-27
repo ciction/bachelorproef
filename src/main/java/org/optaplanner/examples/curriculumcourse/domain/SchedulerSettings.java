@@ -13,9 +13,15 @@ public final class SchedulerSettings {
     public static Language language = Language.Dutch;
 
 
-    public static int day = 2;
+    public static int day = 1;
     public static int month = 3;
     public static int year = 2017;
+    private static final Date today = new Date();
+
+//    public static final Date startDate = today;
     public static final Date startDate = new Date(year-1900,month-1,day);
+
+    public static final int startDay = (startDate.getDay() == 0) ? 7: startDate.getDay();
+
 
 }

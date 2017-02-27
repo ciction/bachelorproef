@@ -18,11 +18,11 @@ package org.optaplanner.examples.curriculumcourse.domain;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.optaplanner.examples.common.domain.AbstractPersistable;
+import sun.security.ssl.Debug;
 
 @XStreamAlias("Day")
 public class Day extends AbstractPersistable {
@@ -30,9 +30,20 @@ public class Day extends AbstractPersistable {
 
     private static  String[] WEEKDAYS = {"Mo", "Tu", "We", "Th", "Fr", "Sat", "Sun"};
     private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+    private static int DayInMilliSeconds = 1000 * 60 * 60 * 24;
     private static final Date today = new Date();
-//    private static final String todayString = dateFormat.format(today);
+    private static boolean isInitialized = false;
 
+
+    private static void init(){
+        if(SchedulerSettings.language.equals(SchedulerSettings.Language.Dutch)){
+            WEEKDAYS = new String[]{"Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"};
+        }
+        List weekdaysList = new ArrayList();
+        weekdaysList =  Arrays.asList(WEEKDAYS);
+        Collections.rotate(weekdaysList, - (SchedulerSettings.startDay -1));
+        isInitialized = true;
+    }
 
     private int dayIndex;
     private Date date;
@@ -46,13 +57,11 @@ public class Day extends AbstractPersistable {
 
     public void setDayIndex(int dayIndex) {
         this.dayIndex = dayIndex;
-        this.date  = new Date(SchedulerSettings.startDate.getTime() + (1000 * 60 * 60 * 24 * dayIndex));
+        this.date  = new Date(SchedulerSettings.startDate.getTime() + (DayInMilliSeconds * dayIndex));
         this.dateString = dateFormat.format(this.date);
-
-        if(SchedulerSettings.language.equals(SchedulerSettings.Language.Dutch)){
-            this.WEEKDAYS = new String[]{"Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"};
+        if(!isInitialized){
+            init();
         }
-
     }
 
     public List<Period> getPeriodList() {
@@ -70,6 +79,14 @@ public class Day extends AbstractPersistable {
 //            return "Day " + dayIndex;
 //        }
         return weekday;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 
     @Override

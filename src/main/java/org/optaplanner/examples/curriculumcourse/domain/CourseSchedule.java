@@ -46,6 +46,7 @@ public class CourseSchedule extends AbstractPersistable implements Solution<Hard
     private List<Period> periodList;
     private List<Room> roomList;
 
+    private List<UnavailableDay> unavailableDayList;
     private List<UnavailablePeriodPenalty> unavailablePeriodPenaltyList;
 
     private List<Lecture> lectureList;
@@ -127,6 +128,15 @@ public class CourseSchedule extends AbstractPersistable implements Solution<Hard
         this.unavailablePeriodPenaltyList = unavailablePeriodPenaltyList;
     }
 
+    //custom
+    public List<UnavailableDay> getUnavailableDayList() {
+        return unavailableDayList;
+    }
+
+    public void setUnavailableDayList(List<UnavailableDay> unavailableDayList) {
+        this.unavailableDayList = unavailableDayList;
+    }
+
     @PlanningEntityCollectionProperty
     public List<Lecture> getLectureList() {
         return lectureList;
@@ -158,6 +168,7 @@ public class CourseSchedule extends AbstractPersistable implements Solution<Hard
         facts.addAll(periodList);
         facts.addAll(roomList);
         facts.addAll(unavailablePeriodPenaltyList);
+        facts.addAll(unavailableDayList);
         facts.addAll(precalculateCourseConflictList());
         // Do not add the planning entity's (lectureList) because that will be done automatically
         return facts;
