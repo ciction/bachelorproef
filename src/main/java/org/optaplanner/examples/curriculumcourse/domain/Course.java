@@ -24,10 +24,17 @@ import org.optaplanner.examples.common.domain.AbstractPersistable;
 @XStreamAlias("Course")
 public class Course extends AbstractPersistable {
 
+
+    public static enum CourseType {
+        Hoorcollege, //2 uur
+        Werkcollege; //3 uur bij voorkeur
+    }
+
     private String code;
 
     private Teacher teacher;
     private int lectureSize;
+    private CourseType courseType;
     private int LectureTime;
     private int minWorkingDaySize;          //  Lectures of the same course should be spread out into a minimum number of days.
 
@@ -38,8 +45,15 @@ public class Course extends AbstractPersistable {
         return code;
     }
 
+//    code = name of the course (JAVA_EE, ABAP etc...)
     public void setCode(String code) {
         this.code = code;
+        if(code.toUpperCase().endsWith("_WK")){
+            this.setCourseType(CourseType.Werkcollege);
+        }
+        else{
+            this.setCourseType(CourseType.Hoorcollege);
+        }
     }
 
     public Teacher getTeacher() {
@@ -52,6 +66,14 @@ public class Course extends AbstractPersistable {
 
     public int getLectureSize() {
         return lectureSize;
+    }
+
+    public CourseType getCourseType() {
+        return courseType;
+    }
+
+    public void setCourseType(CourseType courseType) {
+        this.courseType = courseType;
     }
 
     public void setLectureSize(int lectureSize) {

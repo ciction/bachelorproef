@@ -175,48 +175,77 @@ end
 //    end
 
 
+//    //geen abap in de voormiddag WORKING
+//    //--------------------------------------
+//    rule "geenAbapInVoormiddag"
+//        when
+//            // code = naam van het vak
+//            $course : Course(courseType == "ABAP_Objects_WK")
+//
+//            //{"08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"};
+//            //eerste 4 lesuren geen abap
+//            Lecture(course == $course, timeslotIndex < 4 )
+//        then
+//            scoreHolder.addSoftConstraintMatch(kcontext, -1);
+//    end
+//    //--------------------------------------
+
+
+//geen Werkcolleges in de voormiddag WORKING
+//--------------------------------------
+rule "geenWerkCollegesIndeVoormiddag"
+    when
+        // code = naam van het vak
+        $course : Course(courseType == CourseType.Werkcollege)
+        //{"08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"};
+        //eerste 4 lesuren geen abap
+        Lecture(course == $course, timeslotIndex < 4 )
+    then
+        scoreHolder.addSoftConstraintMatch(kcontext, -1);
+end
+//--------------------------------------
 
 
 //testrule3
 //---------------
-// ABAP MAG NIET plaatsvinden op maandagen (modulo)
-//  0	1	2	3	4	5	6
-//  ma	di	wo	do	vr	za	zo
-// dag modulo 6 --> weekdag
-    rule "testrule3"
-        when
-            $course : Course(code == "ABAP_Objects")
-            $day: Day((dayIndex % 7) == 1)
-            Lecture(course == $course, day == $day , period != null)
-        then
-            scoreHolder.addHardConstraintMatch(kcontext, -10);
-            My_messageClass.writeMessage("abap cannot be placed on monday");
+//// ABAP MAG NIET plaatsvinden op maandagen (modulo)
+////  0	1	2	3	4	5	6
+////  ma	di	wo	do	vr	za	zo
+//// dag modulo 6 --> weekdag
+//    rule "geenAbapOpMaandag"
+//        when
+//            $course : Course(code == "ABAP_Objects")
+//            $day: Day((dayIndex % 7) == 1)
+//            Lecture(course == $course, day == $day , period != null)
+//        then
+//            scoreHolder.addHardConstraintMatch(kcontext, -10);
+//            My_messageClass.writeMessage("abap cannot be placed on monday");
+//
+//    end
 
-    end
 
 
-//testrule4 & 5
 //---------------
-// geen lessen op maandag
-    rule "testrule4"
-        when
-            $day: Day(dayIndex  == 0)
-            Lecture(day == $day)
-        then
-            scoreHolder.addHardConstraintMatch(kcontext, -10);
-
-
-    end
-// geen lessen op woensdag
-    rule "testrule5"
-        when
-            $day: Day(dayIndex  == 2)
-            Lecture(day == $day)
-        then
-            scoreHolder.addHardConstraintMatch(kcontext, -10);
-
-
-    end
+//// TEST -  geen lessen op maandag
+//    rule "geenLessenOpMaandag"
+//        when
+//            $day: Day(dayIndex  == 0)
+//            Lecture(day == $day)
+//        then
+//            scoreHolder.addHardConstraintMatch(kcontext, -10);
+//
+//
+//    end
+//// TEST -  geen lessen op woensdag
+//    rule "geenLessenOpWoensdag"
+//        when
+//            $day: Day(dayIndex  == 2)
+//            Lecture(day == $day)
+//        then
+//            scoreHolder.addHardConstraintMatch(kcontext, -10);
+//
+//
+//    end
 
 //testrule4
 //---------------

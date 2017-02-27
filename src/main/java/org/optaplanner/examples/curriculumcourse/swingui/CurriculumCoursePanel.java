@@ -98,7 +98,8 @@ public class CurriculumCoursePanel extends SolutionPanel {
 
     private void defineGrid(CourseSchedule courseSchedule) {
         JButton footprint = SwingUtils.makeSmallButton(new JButton("LinLetGre1-0"));
-        int footprintWidth = footprint.getPreferredSize().width;
+//      int footprintWidth = footprint.getPreferredSize().width;
+        int footprintWidth = 150;
 
         roomsPanel.defineColumnHeaderByKey(HEADER_COLUMN_GROUP1); // Day header
         roomsPanel.defineColumnHeaderByKey(HEADER_COLUMN); // Period header
