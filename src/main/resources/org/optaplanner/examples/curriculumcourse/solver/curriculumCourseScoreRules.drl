@@ -30,6 +30,7 @@ import org.optaplanner.examples.curriculumcourse.domain.Teacher;
 import org.optaplanner.examples.curriculumcourse.domain.Timeslot;
 import org.optaplanner.examples.curriculumcourse.domain.UnavailablePeriodPenalty;
 import org.optaplanner.examples.curriculumcourse.domain.UnavailableDay;
+import org.optaplanner.examples.curriculumcourse.domain.UnavailablePeriodAllCourses;
 import org.optaplanner.examples.curriculumcourse.domain.solver.CourseConflict;
 
 //christophe
@@ -96,6 +97,17 @@ rule "unavailableDays"
         //Lectures met periods uit deze dagen mogen niet gepland worden
         $day: Day(date == $date)
         Lecture(day == $day)
+    then
+        scoreHolder.addHardConstraintMatch(kcontext, -10);
+end
+
+
+//CUSTOM RULE UnavailablePeriodAllCourses
+//------------------------------------------------------------------------------------------------------------------------------------
+rule "UnavailablePeriodAllCourses"
+    when
+        UnavailablePeriodAllCourses($period : period)
+        Lecture(period == $period)
     then
         scoreHolder.addHardConstraintMatch(kcontext, -10);
 end

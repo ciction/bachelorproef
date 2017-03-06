@@ -477,9 +477,23 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                 penalty.setPeriod(period);
                 penaltyList.add(penalty);
 
+            }
 
+            int UnavailablePeriodAllCoursesListSize = 1;
+            List<UnavailablePeriodAllCourses> UnavailablePeriodAllCoursesList = new ArrayList<UnavailablePeriodAllCourses>(UnavailablePeriodAllCoursesListSize);
+            for (int i = 0; i < UnavailablePeriodAllCoursesListSize; i++) {
+                UnavailablePeriodAllCourses unavailablePeriodAll = new UnavailablePeriodAllCourses();
+                unavailablePeriodAll.setId((long) i);
+
+                int dayIndex = 0;
+                int timeslotIndex = 0;
+                Period period = periodMap.get(Arrays.asList(dayIndex, timeslotIndex));
+                unavailablePeriodAll.setPeriod(period);
+
+                UnavailablePeriodAllCoursesList.add(unavailablePeriodAll);
 
             }
+
 
             //todo unavailable days via ctt files
             //custom hardcoded unavailable days
@@ -501,6 +515,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
 
             schedule.setUnavailablePeriodPenaltyList(penaltyList);
+            schedule.setUnavailablePeriodAllCoursesList(UnavailablePeriodAllCoursesList);
             schedule.setUnavailableDayList(unavailableDayList);
         }
 
