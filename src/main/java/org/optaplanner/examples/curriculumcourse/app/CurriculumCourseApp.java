@@ -24,10 +24,8 @@ import org.optaplanner.examples.common.persistence.AbstractSolutionImporter;
 import org.optaplanner.examples.common.persistence.SolutionDao;
 import org.optaplanner.examples.common.swingui.SolutionPanel;
 import org.optaplanner.examples.curriculumcourse.domain.CourseSchedule;
-import org.optaplanner.examples.curriculumcourse.persistence.CurriculumCourseDao;
-import org.optaplanner.examples.curriculumcourse.persistence.CurriculumCourseExporter;
-import org.optaplanner.examples.curriculumcourse.persistence.CurriculumCourseImporter;
-import org.optaplanner.examples.curriculumcourse.persistence.CurriculumCourseImporter_old;
+import org.optaplanner.examples.curriculumcourse.persistence.*;
+import org.optaplanner.examples.curriculumcourse.swingui.CttEditorFrame;
 import org.optaplanner.examples.curriculumcourse.swingui.CurriculumCoursePanel;
 
 public class CurriculumCourseApp extends CommonApp<CourseSchedule> {
@@ -36,8 +34,15 @@ public class CurriculumCourseApp extends CommonApp<CourseSchedule> {
             = "org/optaplanner/examples/curriculumcourse/solver/curriculumCourseSolverConfig.xml";
 
     public static void main(String[] args) {
-            prepareSwingEnvironment();
-        new CurriculumCourseApp().init();
+        prepareSwingEnvironment();
+        //create windows
+        CurriculumCourseApp curriculumCourseApp = new CurriculumCourseApp();
+        curriculumCourseApp.init();
+        //custom
+        CttEditorFrame cttEditorFrame = new CttEditorFrame();
+        curriculumCourseApp.AddFrame("CttEditor", cttEditorFrame);
+
+
     }
 
     public CurriculumCourseApp() {

@@ -18,7 +18,6 @@ package org.optaplanner.examples.common.business;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.SwingUtilities;
@@ -252,10 +251,15 @@ public class SolutionBusiness<Solution_ extends Solution> {
 
     public void importSolution(File file) {
         AbstractSolutionImporter importer = determineImporter(file);
+        //custom
+//        CttPersistence cttPersistence = new CttPersistence();
+//        importer.setCttPersistence(cttPersistence);
+
         Solution solution = importer.readSolution(file);
         solutionFileName = file.getName();
         guiScoreDirector.setWorkingSolution(solution);
     }
+
 
     private AbstractSolutionImporter determineImporter(File file) {
         for (AbstractSolutionImporter importer : importers) {

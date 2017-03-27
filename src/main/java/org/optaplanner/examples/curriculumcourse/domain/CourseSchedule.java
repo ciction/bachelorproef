@@ -213,4 +213,12 @@ public class CourseSchedule extends AbstractPersistable implements Solution<Hard
         return courseConflictList;
     }
 
+    //custom
+
+
+
+
+
+
+
 }

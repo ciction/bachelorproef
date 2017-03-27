@@ -23,6 +23,7 @@ import org.optaplanner.examples.common.domain.AbstractPersistable;
 public class Curriculum extends AbstractPersistable {
 
     private String code;
+    private  int coursesInCurriculum;
 
     public String getCode() {
         return code;
@@ -41,4 +42,11 @@ public class Curriculum extends AbstractPersistable {
         return code;
     }
 
+    public int getCoursesInCurriculum() {
+        return coursesInCurriculum;
+    }
+
+    public void setCoursesInCurriculum(int coursesInCurriculum) {
+        this.coursesInCurriculum = coursesInCurriculum;
+    }
 }

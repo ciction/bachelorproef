@@ -34,6 +34,7 @@ public abstract class AbstractSolutionImporter extends LoggingMain {
     protected final File inputDir;
     protected final File outputDir;
 
+
     public AbstractSolutionImporter(SolutionDao solutionDao) {
         this.solutionDao = solutionDao;
         inputDir = new File(solutionDao.getDataDir(), "import");

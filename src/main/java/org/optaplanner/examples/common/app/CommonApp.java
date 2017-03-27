@@ -17,7 +17,7 @@
 package org.optaplanner.examples.common.app;
 
 import java.awt.Component;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 
 import org.optaplanner.core.api.domain.solution.Solution;
 import org.optaplanner.core.api.solver.SolverFactory;
@@ -83,6 +83,10 @@ public abstract class CommonApp<Solution_ extends Solution> extends LoggingMain 
         solverAndPersistenceFrame.setDefaultCloseOperation(exitOnClose ? WindowConstants.EXIT_ON_CLOSE : WindowConstants.DISPOSE_ON_CLOSE);
         solverAndPersistenceFrame.init(centerForComponent);
         solverAndPersistenceFrame.setVisible(true);
+    }
+
+    public void AddFrame(String name, JFrame jFrame){
+        solverAndPersistenceFrame.AddFrame(name, jFrame);
     }
 
     public SolutionBusiness<Solution_> createSolutionBusiness() {

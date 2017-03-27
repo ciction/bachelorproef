@@ -22,14 +22,14 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -46,16 +46,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.filechooser.FileFilter;
 
 import org.apache.commons.io.FilenameUtils;
+import org.optaplanner.examples.curriculumcourse.swingui.CttEditorFrame;
 import org.optaplanner.swing.impl.SwingUtils;
 import org.optaplanner.core.api.domain.solution.Solution;
 import org.optaplanner.core.api.score.FeasibilityScore;
@@ -86,6 +85,7 @@ public class SolverAndPersistenceFrame<Solution_ extends Solution> extends JFram
     private Action openAction;
     private Action saveAction;
     private Action importAction;
+    private Action cttAction;
     private Action exportAction;
     private JCheckBox refreshScreenDuringSolvingCheckBox;
     private Action solveAction;
@@ -96,6 +96,9 @@ public class SolverAndPersistenceFrame<Solution_ extends Solution> extends JFram
     private JProgressBar progressBar;
     private JTextField scoreField;
     private ShowConstraintMatchesDialogAction showConstraintMatchesDialogAction;
+
+    //custom
+    private Map<String, JFrame> otherFrames =  new HashMap<String, JFrame>();
 
     public SolverAndPersistenceFrame(SolutionBusiness<Solution_> solutionBusiness, SolutionPanel solutionPanel) {
         super(solutionBusiness.getAppName() + " OptaPlanner example");
@@ -132,6 +135,12 @@ public class SolverAndPersistenceFrame<Solution_ extends Solution> extends JFram
         pack();
         setLocationRelativeTo(centerForComponent);
     }
+
+    public void AddFrame(String name, JFrame jFrame){
+        otherFrames.put(name, jFrame);
+    }
+
+
 
     private JComponent createContentPane() {
         JComponent quickOpenPanel = createQuickOpenPanel();
@@ -237,6 +246,11 @@ public class SolverAndPersistenceFrame<Solution_ extends Solution> extends JFram
         importAction = new ImportAction();
         importAction.setEnabled(solutionBusiness.hasImporter());
         JButton importButton = new JButton(importAction);
+
+        cttAction = new CttAction();
+        JButton cttButton = new JButton(cttAction);
+
+
         openAction = new OpenAction();
         openAction.setEnabled(true);
         JButton openButton = new JButton(openAction);
@@ -263,6 +277,7 @@ public class SolverAndPersistenceFrame<Solution_ extends Solution> extends JFram
         solveButton.setPreferredSize(terminateSolvingEarlyButton.getPreferredSize());
 
         toolBarLayout.setHorizontalGroup(toolBarLayout.createSequentialGroup()
+                .addComponent(cttButton)
                 .addComponent(importButton)
                 .addComponent(openButton)
                 .addComponent(saveButton)
@@ -271,6 +286,7 @@ public class SolverAndPersistenceFrame<Solution_ extends Solution> extends JFram
                 .addComponent(solvePanel, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addComponent(progressBar, 20, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE));
         toolBarLayout.setVerticalGroup(toolBarLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+                .addComponent(cttButton)
                 .addComponent(importButton)
                 .addComponent(openButton)
                 .addComponent(saveButton)
@@ -468,13 +484,81 @@ public class SolverAndPersistenceFrame<Solution_ extends Solution> extends JFram
             if (approved == JFileChooser.APPROVE_OPTION) {
                 File file = fileChooser.getSelectedFile();
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                CttEditorFrame cttEditorFrame = (CttEditorFrame)otherFrames.get("CttEditor");
                 try {
                     solutionBusiness.importSolution(file);
                     setSolutionLoaded();
                 } finally {
                     setCursor(Cursor.getDefaultCursor());
+                    if(cttEditorFrame.isM_isInitial()){
+                        cttEditorFrame.initFields(solutionBusiness.getSolution());
+                    }
                 }
             }
+        }
+
+    }
+
+    private class CttAction extends AbstractAction {
+
+        private static final String NAME = "Ctt";
+        private JFileChooser fileChooser;
+
+        public CttAction() {
+            super(NAME, new ImageIcon(SolverAndPersistenceFrame.class.getResource("importAction.png")));
+//            if (!solutionBusiness.hasImporter()) {
+//                fileChooser = null;
+//                return;
+//            }
+//            fileChooser = new JFileChooser(solutionBusiness.getImportDataDir());
+//            boolean firstFilter = true;
+//            for (final AbstractSolutionImporter importer : solutionBusiness.getImporters()) {
+//                FileFilter filter;
+//                if (importer.isInputFileDirectory()) {
+//                    filter = new FileFilter() {
+//                        public boolean accept(File file) {
+//                            return file.isDirectory();
+//                        }
+//
+//                        public String getDescription() {
+//                            return "Import directory";
+//                        }
+//                    };
+//                    fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+//                } else {
+//                    filter = new FileFilter() {
+//                        public boolean accept(File file) {
+//                            return file.isDirectory() || importer.acceptInputFile(file);
+//                        }
+//
+//                        public String getDescription() {
+//                            return "Import files (*." + importer.getInputFileSuffix() + ")";
+//                        }
+//                    };
+//                }
+//                fileChooser.addChoosableFileFilter(filter);
+//                if (firstFilter) {
+//                    fileChooser.setFileFilter(filter);
+//                    firstFilter = false;
+//                }
+//            }
+//            fileChooser.setDialogTitle(NAME);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+//            int approved = fileChooser.showOpenDialog(SolverAndPersistenceFrame.this);
+//            if (approved == JFileChooser.APPROVE_OPTION) {
+//                File file = fileChooser.getSelectedFile();
+//                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                try {
+                } finally {
+                    if(solutionBusiness.getSolution() != null){
+                        CttEditorFrame cttEditorFrame = (CttEditorFrame)otherFrames.get("CttEditor");
+                        cttEditorFrame.setVisible(!cttEditorFrame.isVisible());
+                        setCursor(Cursor.getDefaultCursor());
+                    }
+                }
+//            }
         }
 
     }

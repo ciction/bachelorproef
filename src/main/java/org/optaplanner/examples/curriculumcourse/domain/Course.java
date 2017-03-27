@@ -103,6 +103,15 @@ public class Course extends AbstractPersistable {
         return curriculumList;
     }
 
+    //custom
+    public boolean addCurriculum(Curriculum curriculum){
+        if(this.curriculumList.contains(curriculum)){
+            return false;
+        }
+        this.curriculumList.add(curriculum);
+        return  true;
+    }
+
     public void setCurriculumList(List<Curriculum> curriculumList) {
         this.curriculumList = curriculumList;
     }

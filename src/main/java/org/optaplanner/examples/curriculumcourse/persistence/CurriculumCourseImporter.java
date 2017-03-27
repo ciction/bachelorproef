@@ -69,6 +69,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
 
         public Solution readSolution() throws IOException {
+
             CourseSchedule schedule = new CourseSchedule();
             schedule.setId(0L);
 
@@ -437,6 +438,8 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                     throw new IllegalArgumentException("Read line (" + line + ") is expected to contain "
                             + (coursesInCurriculum + 2) + " tokens.");
                 }
+                curriculum.setCoursesInCurriculum(coursesInCurriculum);
+
                 for (int j = 2; j < lineTokens.length; j++) {
                     Course course = courseMap.get(lineTokens[j]);
                     if (course == null) {
