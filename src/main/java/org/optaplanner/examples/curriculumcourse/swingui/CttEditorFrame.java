@@ -1,9 +1,7 @@
 package org.optaplanner.examples.curriculumcourse.swingui;
 
 import org.optaplanner.core.api.domain.solution.Solution;
-import org.optaplanner.examples.common.swingui.components.Custom.JDropDownListPanel;
-import org.optaplanner.examples.common.swingui.components.Custom.JInputFieldPanel;
-import org.optaplanner.examples.common.swingui.components.Custom.JOkCancelPanel;
+import org.optaplanner.examples.common.swingui.components.Custom.*;
 import org.optaplanner.examples.curriculumcourse.domain.*;
 
 import javax.swing.*;
@@ -68,6 +66,7 @@ public class CttEditorFrame extends JFrame {
 
     //fourth panel - curriculum
     JPanel m_curriculumContainerPanel;
+    final JPanel m_innerCurriculumPane = new JPanel();
     JPanel m_curriculumGridPanel;
     JButton m_addCurriculumButton = new JButton("Add curriculum");
 
@@ -369,7 +368,41 @@ public class CttEditorFrame extends JFrame {
                     }
 
 
-                    addGridRow(curriculum);
+                    //todo finish this ---------
+
+                        JLabel curriculumName = new JLabel( curriculum.getCode() + "(" + curriculum.getCoursesInCurriculum() + "):");
+                        JTitleDetailsPanelHorizontal titleDetailsPanelHorizontal = new JTitleDetailsPanelHorizontal();
+                        titleDetailsPanelHorizontal.addTitleComponent(curriculumName);
+
+                        //for course in curriculum
+                        for (Course course : m_courseList) {
+                            if (course.getCurriculumList().contains(curriculum)) {
+                                JLabel courseLabel = new JLabel("  " + course.getCode());
+                                titleDetailsPanelHorizontal.addDetailsComponent(courseLabel);
+                            }
+                        }
+
+                        final JDataAndButtonLinePanel dataAndButtonLinePanel = new JDataAndButtonLinePanel(titleDetailsPanelHorizontal, "remove");
+                        dataAndButtonLinePanel.addButtonListener(new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                m_innerCurriculumPane.remove(dataAndButtonLinePanel);
+
+                                m_curriculumContainerPanel.revalidate();
+                                m_innerCurriculumPane.repaint();
+
+                            }
+                        });
+                        dataAndButtonLinePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                        m_innerCurriculumPane.add(dataAndButtonLinePanel);
+
+
+                    //todo end finish this ----------
+
+//                    addGridRow(curriculum);
+
+
+
 
                     //update the general fields
                     ++m_editorRoomCount;
@@ -473,12 +506,55 @@ public class CttEditorFrame extends JFrame {
 
     public void initCurriculumContainer() {
         //curriculum panel (rows, cols)
-        m_curriculumGridPanel = new JPanel(new GridLayout(m_curriculumList.size(), 3));
+//        m_curriculumGridPanel = new JPanel(new GridLayout(m_curriculumList.size(), 3));
+//        for (Curriculum curriculum : m_curriculumList) {
+//            addGridRow(curriculum);
+//        }
+//        m_curriculumGridPanel.setMaximumSize(m_curriculumGridPanel.getPreferredSize());
+//        m_curriculumContainerPanel.add(m_curriculumGridPanel);
+
+
+
+        //todo remake ------------------------------------
+//        m_curriculumGridPanel = new JPanel(new GridLayout(m_curriculumList.size(), 3));
+
+        m_innerCurriculumPane.setLayout(new BoxLayout(m_innerCurriculumPane, BoxLayout.PAGE_AXIS));
+        m_curriculumContainerPanel.add(m_innerCurriculumPane);
+
+        //forach curriculum
         for (Curriculum curriculum : m_curriculumList) {
-            addGridRow(curriculum);
+            JLabel curriculumName = new JLabel( curriculum.getCode() + "(" + curriculum.getCoursesInCurriculum() + "):");
+            JTitleDetailsPanelHorizontal titleDetailsPanelHorizontal = new JTitleDetailsPanelHorizontal();
+            titleDetailsPanelHorizontal.addTitleComponent(curriculumName);
+
+            //for course in curriculum
+            for (Course course : m_courseList) {
+                if (course.getCurriculumList().contains(curriculum)) {
+                    JLabel courseLabel = new JLabel("  " + course.getCode());
+                    titleDetailsPanelHorizontal.addDetailsComponent(courseLabel);
+                }
+            }
+
+            final JDataAndButtonLinePanel dataAndButtonLinePanel = new JDataAndButtonLinePanel(titleDetailsPanelHorizontal, "remove");
+
+            dataAndButtonLinePanel.addButtonListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    m_innerCurriculumPane.remove(dataAndButtonLinePanel);
+
+                    m_curriculumContainerPanel.revalidate();
+                    m_innerCurriculumPane.repaint();
+
+                }
+            });
+            m_innerCurriculumPane.add(dataAndButtonLinePanel);
+
+
         }
-        m_curriculumGridPanel.setMaximumSize(m_curriculumGridPanel.getPreferredSize());
-        m_curriculumContainerPanel.add(m_curriculumGridPanel);
+
+
+        //TODO END REMAKE ------------------------------
+
     }
 
     public void initUnavailableContainer() {
