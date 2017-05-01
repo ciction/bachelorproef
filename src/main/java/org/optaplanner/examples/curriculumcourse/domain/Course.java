@@ -37,6 +37,7 @@ public class Course extends AbstractPersistable {
     private CourseType courseType;
     private int LectureTime;
     private int minWorkingDaySize;          //  Lectures of the same course should be spread out into a minimum number of days.
+    private boolean isPCNeeded = true;
 
     private List<Curriculum> curriculumList;
     private int studentSize;
@@ -97,6 +98,14 @@ public class Course extends AbstractPersistable {
     // Lectures of the same course should be spread out into a minimum number of days.
     public void setMinWorkingDaySize(int minWorkingDaySize) {
         this.minWorkingDaySize = minWorkingDaySize;
+    }
+
+    public boolean isPCNeeded() {
+        return isPCNeeded;
+    }
+
+    public void setPCNeeded(boolean PCNeeded) {
+        isPCNeeded = PCNeeded;
     }
 
     public List<Curriculum> getCurriculumList() {

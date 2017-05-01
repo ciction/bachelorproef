@@ -25,6 +25,7 @@ public class Room extends AbstractPersistable implements Labeled {
 
     private String code;
     private int capacity;
+    private int pcCount = 0;
 
     public String getCode() {
         return code;
@@ -40,6 +41,14 @@ public class Room extends AbstractPersistable implements Labeled {
 
     public void setCapacity(int capacity) {
         this.capacity = capacity;
+    }
+
+    public int getPcCount() {
+        return pcCount;
+    }
+
+    public void setPcCount(int pcCount) {
+        this.pcCount = pcCount;
     }
 
     public String getLabel() {

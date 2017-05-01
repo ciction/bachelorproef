@@ -230,23 +230,26 @@ rule "geenWerkCollegesIndeVoormiddag"
 end
 //--------------------------------------
 
+/*
+    aantal pc's moet voldoen
+          - er is een pc nodig voor het vak
+          - kijk hoeveel pc's er zijn  ==> $pcCount
+          - alle lectures die in deze ruimte moeten gegeven mogen met $studentSize niet over $pcCount gaan
 
-//testrule3
-//---------------
-//// ABAP MAG NIET plaatsvinden op maandagen (modulo)
-////  0	1	2	3	4	5	6
-////  ma	di	wo	do	vr	za	zo
-//// dag modulo 6 --> weekdag
-//    rule "geenAbapOpMaandag"
-//        when
-//            $course : Course(code == "ABAP_Objects")
-//            $day: Day((dayIndex % 7) == 1)
-//            Lecture(course == $course, day == $day , period != null)
-//        then
-//            scoreHolder.addHardConstraintMatch(kcontext, -10);
-//            My_messageClass.writeMessage("abap cannot be placed on monday");
-//
-//    end
+          ==> er gaat 1 punt af per pc die ontbreekt
+ */
+
+//--------------------------------------
+rule "roomHasEnoughPCs"
+     when
+          $course : Course( isPCNeeded() == true )
+          $room : Room($pcCount : pcCount)
+          Lecture(room == $room, studentSize > $pcCount, $studentSize : studentSize)
+      then
+          scoreHolder.addSoftConstraintMatch(kcontext, ($pcCount - $studentSize));
+end
+//--------------------------------------
+
 
 
 
