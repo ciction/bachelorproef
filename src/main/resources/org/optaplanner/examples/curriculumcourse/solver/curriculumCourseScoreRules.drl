@@ -312,9 +312,9 @@ rule "CourseDependency"
           //zoek op alle lectures
           //voeg het vak toe aan de lijst wanneer de course gelijk is aan 'java ee'  en de datum voor de huidige course is
           //todo voeg het vak toe aan de lijst wanneer het voorkomt in de coursedependencies en de datum voor de huidige course is
-//    	    $collectedDependencyCourses: ArrayList()
-//    		from collect(
-//    		 Lecture(course == $otherCourse, timeslotIndex >= $dependentLecture.timeslotIndex ));
+    	    $collectedDependencyCourses: ArrayList()
+    		from collect(
+    		 Lecture(course == $otherCourse, timeslotIndex >= $dependentLecture.timeslotIndex ));
 //todo rest hierboven uit comment
 
 //                $roomCount : Number(intValue > 1)  from collect(
@@ -326,7 +326,7 @@ rule "CourseDependency"
           System.out.println(" $dependentCourse = " + $dependentCourse.toString());
           System.out.println(" $otherCourse = " + $otherCourse.toString());
           System.out.println(" $dependentLecture timeslot = " + $dependentLecture.getAbsoluteTimeslot() );
-//          scoreHolder.addHardConstraintMatch(kcontext, -$collectedDependencyCourses.size());
+          scoreHolder.addHardConstraintMatch(kcontext, -$collectedDependencyCourses.size());
 end
 
 

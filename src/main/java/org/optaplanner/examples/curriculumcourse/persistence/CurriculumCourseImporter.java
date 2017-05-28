@@ -90,22 +90,30 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             int curriculumListSize = readIntegerValue("Curricula:");
             // Constraints: 8
             int unavailablePeriodPenaltyListSize = readIntegerValue("Constraints:");
+            // DependentCourses: 8
+            int dependentCourseSize = readIntegerValue("DependentCourses:");
 
             //COURSES:
+            //save the courses in a map voor hergebruik
             Map<String, Course> courseMap = readCourseListAndTeacherList( schedule, courseListSize);
 
             //ROOMS:
             readRoomList( schedule, roomListSize);
 
+            //create lists
             Map<List<Integer>, Period> periodMap = createPeriodListAndDayListAndTimeslotList(
-                                                    schedule, dayListSize, timeslotListSize);
+                    schedule, dayListSize, timeslotListSize);
 
+            //CURRICULA:
             readCurriculumList( schedule, courseMap, curriculumListSize);
 
+            //UNAVAILABILITY_CONSTRAINTS:
             readUnavailablePeriodPenaltyList( schedule, courseMap, periodMap, unavailablePeriodPenaltyListSize);
 
-            readEmptyLine();
+            //DEPENDENCIES:
+            readDependencies(courseMap, dependentCourseSize);
 
+            readEmptyLine();
             readConstantLine("END\\.");
             createLectureList(schedule);
 
@@ -113,7 +121,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             BigInteger possibleSolutionSize = BigInteger.valueOf(possibleForOneLectureSize).pow(
                     schedule.getLectureList().size());
             logger.info("CourseSchedule {} has {} teachers, {} curricula, {} courses, {} lectures," +
-                    " {} periods, {} rooms and {} unavailable period constraints with a search space of {}.",
+                            " {} periods, {} rooms and {} unavailable period constraints with a search space of {}.",
                     getInputId(),
                     schedule.getTeacherList().size(),
                     schedule.getCurriculumList().size(),
@@ -188,6 +196,8 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             List<Course> courseList = new ArrayList<Course>(courseListSize);
 
             readEmptyLine();
+            //1 read title
+            //2 read each line
             readConstantLine("COURSES:");
             for (int i = 0; i < courseListSize; i++) {                                   //Courses: 3 --> 3 times forloop
                 Course course = new Course();
@@ -202,16 +212,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                 course.setCurriculumList(new ArrayList<Curriculum>());
                 course.setStudentSize(Integer.parseInt(lineTokens[4]));                 //setStudentSize aantal studenten voor dit vak
 
-                //todo change harcoded  course dependencies
-                List<Course> courseDependencies = new ArrayList<Course>();
-                Course dependencyCourse = new Course();
-                dependencyCourse.setCode("Java_EE_BIZ");
-                courseDependencies.add(dependencyCourse);
-
-                List<String> courseDependencies2 = new ArrayList<String>();
-                courseDependencies2.add("Java_EE_BIZ");
-                courseDependencies2.add("Networking");
-                course.setCourseDependencies(courseDependencies2);
+//
 
 
 //                course.setLectureTime(Integer.parseInt(lineTokens[5]));
@@ -328,7 +329,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
         private Map<List<Integer>, Period> createPeriodListAndDayListAndTimeslotList(
                 CourseSchedule schedule, int dayListSize, int timeslotListSize) throws IOException {
 
-             int periodListSize = dayListSize * timeslotListSize; // --> original
+            int periodListSize = dayListSize * timeslotListSize; // --> original
             Map<List<Integer>, Period> periodMap = new HashMap<List<Integer>, Period>(periodListSize);
 
             //int periodListSize = (dayListSize * timeslotListSize) - (getWednessdayTimeDifference(timeslotListSize) * getAmountOfWednesDays(dayListSize));
@@ -432,7 +433,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
         }
 
         private void readCurriculumList(CourseSchedule schedule,
-                Map<String, Course> courseMap, int curriculumListSize) throws IOException {
+                                        Map<String, Course> courseMap, int curriculumListSize) throws IOException {
             readEmptyLine();
             readConstantLine("CURRICULA:");
             List<Curriculum> curriculumList = new ArrayList<Curriculum>(curriculumListSize);
@@ -468,7 +469,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
         }
 
         private void readUnavailablePeriodPenaltyList(CourseSchedule schedule, Map<String, Course> courseMap,
-                Map<List<Integer>, Period> periodMap, int unavailablePeriodPenaltyListSize)
+                                                      Map<List<Integer>, Period> periodMap, int unavailablePeriodPenaltyListSize)
                 throws IOException {
             readEmptyLine();
             readConstantLine("UNAVAILABILITY_CONSTRAINTS:");
@@ -535,6 +536,49 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             schedule.setUnavailablePeriodPenaltyList(penaltyList);
             schedule.setUnavailablePeriodAllCoursesList(UnavailablePeriodAllCoursesList);
             schedule.setUnavailableDayList(unavailableDayList);
+        }
+
+
+        private void readDependencies( Map<String, Course> courseMap, int dependentCourseSize)
+
+                throws IOException {
+            readEmptyLine();
+            readConstantLine("DEPENDENCIES:");
+//            List<UnavailablePeriodPenalty> penaltyList = new ArrayList<UnavailablePeriodPenalty>(
+//                    unavailablePeriodPenaltyListSize);
+            for (int i = 0; i < dependentCourseSize; i++) {
+
+                String line = bufferedReader.readLine();
+                String[] lineTokens = splitBySpacesOrTabs(line);
+
+                //throw error on bad syntax (niet genoeg parameters op de lijn)
+                if (lineTokens.length < 2) {
+                    throw new IllegalArgumentException("Read line (" + line
+                            + ") is expected to contain at least 2 tokens.");
+                }
+
+                //course zoeken waavan de dependencies moeten worden aangepast
+                Course dependentCourse = courseMap.get(lineTokens[0]);
+
+                //dependencies aanmaken
+                List<String> courseDependencies = new ArrayList<String>();
+                for (int j = 1; j < lineTokens.length; j++) {
+                    String dependencyName = lineTokens[j];
+                    Course dependencyCourse = courseMap.get(dependencyName);
+                    courseDependencies.add(dependencyName);
+
+                    //throw error if the dependency course does not exist
+                    if (dependencyCourse == null) {
+                        throw new IllegalArgumentException("The requested dependency on line: (" + line + ") " +
+                                "- dependency:'" + dependencyName + "' does not exist.");
+                    }
+                }
+
+
+                //save dependencies in the dependent course
+                dependentCourse.setCourseDependencies(courseDependencies);
+                System.out.println("temp");
+            }
         }
 
         private void createLectureList(CourseSchedule schedule) {
