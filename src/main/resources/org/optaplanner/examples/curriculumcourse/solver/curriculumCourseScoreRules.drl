@@ -37,6 +37,7 @@ import org.optaplanner.examples.curriculumcourse.domain.solver.CourseConflict;
 //----------------
 import  org.optaplanner.examples.curriculumcourse.domain.My_messageClass;
 import java.util.ArrayList
+import java.util.HashMap
 
 //----------------
 
@@ -297,7 +298,7 @@ end
 //course dependencies
 //test hardcoded, abap moet plaatsvinden na java_ee_biz
 
-rule "CourseDependency"
+/*rule "CourseDependency"
      when
           $dependentCourse : Course( code == "ABAP_Objects", $courseDependencies: courseDependencies )
           $dependentLecture: Lecture( course == $dependentCourse)
@@ -312,9 +313,24 @@ rule "CourseDependency"
           //zoek op alle lectures
           //voeg het vak toe aan de lijst wanneer de course gelijk is aan 'java ee'  en de datum voor de huidige course is
           //todo voeg het vak toe aan de lijst wanneer het voorkomt in de coursedependencies en de datum voor de huidige course is
-    	    $collectedDependencyCourses: ArrayList()
+//            $count : Number()from collect( Lecture(course == $otherCourse, timeslotIndex >= $dependentLecture.timeslotIndex ))
+
+    	    $DependencyCoursesGivenBefore: ArrayList()
     		from collect(
-    		 Lecture(course == $otherCourse, timeslotIndex >= $dependentLecture.timeslotIndex ));
+    		 Lecture(course == $otherCourse, timeslotIndex <= $dependentLecture.timeslotIndex ));
+
+             $courseDependencyCounters :  HashMap() from $dependentCourse.courseDependencyCount
+
+
+
+//    		  eval($collectedDependencyCourses.size() > $dependentCourse.courseDependencyCount.get($otherCourse.code))
+
+
+
+//    		  eval($collectedDependencyCourses.size() > $dependentCourse.courseDependencyCount["Java_EE_BIZ"])
+
+//                            $count: $map["Java_EE_BIZ"];
+
 //todo rest hierboven uit comment
 
 //                $roomCount : Number(intValue > 1)  from collect(
@@ -323,10 +339,43 @@ rule "CourseDependency"
 //                count($course)
 //            )
       then
+      System.out.println();
+      System.out.println();
           System.out.println(" $dependentCourse = " + $dependentCourse.toString());
           System.out.println(" $otherCourse = " + $otherCourse.toString());
-          System.out.println(" $dependentLecture timeslot = " + $dependentLecture.getAbsoluteTimeslot() );
-          scoreHolder.addHardConstraintMatch(kcontext, -$collectedDependencyCourses.size());
+//          System.out.println(" $courseDependencyCounters = " + $courseDependencyCounters);
+//          System.out.println(" $otherCourseCount = " + $collectedDependencyCourses.size());
+
+//           System.out.println($courseDependencyCount.get($otherCourse.getCode()));
+           int minCount =  (Integer) $courseDependencyCounters.get($otherCourse.getCode());
+           System.out.println("minCount = " + minCount);
+           System.out.println("$DependencyCoursesGivenBefore.size() = " + $DependencyCoursesGivenBefore.size());
+            scoreHolder.addHardConstraintMatch(kcontext, -$DependencyCoursesGivenBefore.size() - minCount);
+
+//           System.out.println("$temp = " + $temp);
+//          $dependentCourse.getCode()
+
+//          scoreHolder.addHardConstraintMatch(kcontext, -$collectedDependencyCourses.size());
+//          System.out.println("$count = " + $count);
+//          scoreHolder.addHardConstraintMatch(kcontext, -($count.intValue()));
+
+end
+*/
+
+//minpunten
+rule "Dependency courses not before Dependent course"
+     when
+          $dependentCourse : Course( code == "ABAP_Objects", $courseDependencies: courseDependencies )
+          $dependentLecture: Lecture( course == $dependentCourse)
+
+          $otherCourse: Course( code == "Java_EE_BIZ");
+          $collectedDependencyLectures: ArrayList()
+          from collect( Lecture( course.code == "Java_EE_BIZ", $timeslotIndex: timeslotIndex >= $dependentLecture.timeslotIndex ));
+      then
+      System.out.println($dependentLecture.getLabel());
+      System.out.println($collectedDependencyLectures);
+      System.out.println($collectedDependencyLectures.size());
+//      scoreHolder.addHardConstraintMatch(kcontext, -$collectedDependencyLectures.size());
 end
 
 

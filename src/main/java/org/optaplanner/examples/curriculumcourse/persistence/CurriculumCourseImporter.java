@@ -562,10 +562,15 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
                 //dependencies aanmaken
                 List<String> courseDependencies = new ArrayList<String>();
+                Map<String,Integer> courseDependencyCount = new HashMap<String, Integer>();
+
                 for (int j = 1; j < lineTokens.length; j++) {
                     String dependencyName = lineTokens[j];
                     Course dependencyCourse = courseMap.get(dependencyName);
                     courseDependencies.add(dependencyName);
+
+                    //todo change hardcoded dependency count
+                    courseDependencyCount.put(dependencyName, 2);
 
                     //throw error if the dependency course does not exist
                     if (dependencyCourse == null) {
@@ -577,6 +582,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
                 //save dependencies in the dependent course
                 dependentCourse.setCourseDependencies(courseDependencies);
+                dependentCourse.setCourseDependencyCount(courseDependencyCount);
                 System.out.println("temp");
             }
         }

@@ -16,7 +16,10 @@
 
 package org.optaplanner.examples.curriculumcourse.domain;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.optaplanner.examples.common.domain.AbstractPersistable;
@@ -42,10 +45,8 @@ public class Course extends AbstractPersistable {
     private List<Curriculum> curriculumList;
     private int studentSize;
 
-//    private List<Course> courseDependencies;
-    private List<String> courseDependencies;
-
-
+    private List<String> courseDependencies = new ArrayList<String>();
+    private Map<String,Integer> courseDependencyCount = new HashMap<String, Integer>();
 
     public String getCode() {
         return code;
@@ -143,7 +144,7 @@ public class Course extends AbstractPersistable {
         this.studentSize = studentSize;
     }
 
-    //dependencies voor parent courses
+    //dependencies voor parent courses (welke)
     public List<String> getCourseDependencies() {
         return courseDependencies;
     }
@@ -151,6 +152,16 @@ public class Course extends AbstractPersistable {
     public void setCourseDependencies(List<String> courseDependencies) {
         this.courseDependencies = courseDependencies;
     }
+
+    //dependency count
+    public Map<String, Integer> getCourseDependencyCount() {
+        return courseDependencyCount;
+    }
+
+    public void setCourseDependencyCount(Map<String, Integer> courseDependencyCount) {
+        this.courseDependencyCount = courseDependencyCount;
+    }
+
 
     @Override
     public String toString() {
