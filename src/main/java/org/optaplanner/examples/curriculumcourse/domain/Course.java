@@ -42,6 +42,11 @@ public class Course extends AbstractPersistable {
     private List<Curriculum> curriculumList;
     private int studentSize;
 
+//    private List<Course> courseDependencies;
+    private List<String> courseDependencies;
+
+
+
     public String getCode() {
         return code;
     }
@@ -108,6 +113,9 @@ public class Course extends AbstractPersistable {
         isPCNeeded = PCNeeded;
     }
 
+    //how many of the pc's are used in this lecuture (1 = 100% %)
+
+
     public List<Curriculum> getCurriculumList() {
         return curriculumList;
     }
@@ -121,6 +129,8 @@ public class Course extends AbstractPersistable {
         return  true;
     }
 
+
+
     public void setCurriculumList(List<Curriculum> curriculumList) {
         this.curriculumList = curriculumList;
     }
@@ -133,9 +143,19 @@ public class Course extends AbstractPersistable {
         this.studentSize = studentSize;
     }
 
+    //dependencies voor parent courses
+    public List<String> getCourseDependencies() {
+        return courseDependencies;
+    }
+
+    public void setCourseDependencies(List<String> courseDependencies) {
+        this.courseDependencies = courseDependencies;
+    }
+
     @Override
     public String toString() {
         return code;
     }
+
 
 }

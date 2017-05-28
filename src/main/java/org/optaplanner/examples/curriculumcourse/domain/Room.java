@@ -25,7 +25,7 @@ public class Room extends AbstractPersistable implements Labeled {
 
     private String code;
     private int capacity;
-    private int pcCount = 0;
+    private int pcCount = 3;
 
     public String getCode() {
         return code;

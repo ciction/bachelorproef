@@ -16,6 +16,7 @@
 
 package org.optaplanner.examples.curriculumcourse.domain;
 
+import java.sql.Time;
 import java.util.List;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -38,6 +39,17 @@ public class Lecture extends AbstractPersistable {
 
     // Planning variables: changes during planning, between score calculations.
     private Period period;
+
+    public int getAbsoluteTimeslot() {
+        return absoluteTimeslot;
+    }
+
+    public void setAbsoluteTimeslot(int absoluteTimeslot) {
+        this.absoluteTimeslot = absoluteTimeslot;
+    }
+
+    private int absoluteTimeslot;
+
     private Room room;
 
     public Course getCourse() {
@@ -76,6 +88,12 @@ public class Lecture extends AbstractPersistable {
 
     public void setPeriod(Period period) {
         this.period = period;
+        if(period != null){
+            this.absoluteTimeslot =
+                    period.getTimeslot().getTimeslotIndex()  +
+                            getDay().getDayIndex() * 8;
+        }
+
     }
 
     @PlanningVariable(valueRangeProviderRefs = {"roomRange"},

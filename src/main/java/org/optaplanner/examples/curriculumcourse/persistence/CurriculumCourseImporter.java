@@ -91,8 +91,10 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             // Constraints: 8
             int unavailablePeriodPenaltyListSize = readIntegerValue("Constraints:");
 
+            //COURSES:
             Map<String, Course> courseMap = readCourseListAndTeacherList( schedule, courseListSize);
 
+            //ROOMS:
             readRoomList( schedule, roomListSize);
 
             Map<List<Integer>, Period> periodMap = createPeriodListAndDayListAndTimeslotList(
@@ -199,6 +201,18 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                 course.setMinWorkingDaySize(Integer.parseInt(lineTokens[3]));           //MinWorkingDaySize --> // Lectures of the same course should be spread out into a minimum number of days.
                 course.setCurriculumList(new ArrayList<Curriculum>());
                 course.setStudentSize(Integer.parseInt(lineTokens[4]));                 //setStudentSize aantal studenten voor dit vak
+
+                //todo change harcoded  course dependencies
+                List<Course> courseDependencies = new ArrayList<Course>();
+                Course dependencyCourse = new Course();
+                dependencyCourse.setCode("Java_EE_BIZ");
+                courseDependencies.add(dependencyCourse);
+
+                List<String> courseDependencies2 = new ArrayList<String>();
+                courseDependencies2.add("Java_EE_BIZ");
+                courseDependencies2.add("Networking");
+                course.setCourseDependencies(courseDependencies2);
+
 
 //                course.setLectureTime(Integer.parseInt(lineTokens[5]));
 
@@ -514,7 +528,8 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            unavailableDayList.add(unavailableDay);
+            //todo change unavailable days
+//            unavailableDayList.add(unavailableDay);
 
 
             schedule.setUnavailablePeriodPenaltyList(penaltyList);

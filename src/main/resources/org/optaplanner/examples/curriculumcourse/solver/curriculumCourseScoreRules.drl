@@ -36,6 +36,8 @@ import org.optaplanner.examples.curriculumcourse.domain.solver.CourseConflict;
 //christophe
 //----------------
 import  org.optaplanner.examples.curriculumcourse.domain.My_messageClass;
+import java.util.ArrayList
+
 //----------------
 
 
@@ -231,7 +233,7 @@ end
 //--------------------------------------
 
 /*
-    aantal pc's moet voldoen
+    aantal pc's moet voldoen        SOFT
           - er is een pc nodig voor het vak
           - kijk hoeveel pc's er zijn  ==> $pcCount
           - alle lectures die in deze ruimte moeten gegeven mogen met $studentSize niet over $pcCount gaan
@@ -240,17 +242,112 @@ end
  */
 
 //--------------------------------------
-rule "roomHasEnoughPCs"
-     when
-          $course : Course( isPCNeeded() == true )
-          $room : Room($pcCount : pcCount)
-          Lecture(room == $room, studentSize > $pcCount, $studentSize : studentSize)
-      then
-          scoreHolder.addSoftConstraintMatch(kcontext, ($pcCount - $studentSize));
-end
+////todo Reactivate
+//rule "roomHasEnoughPCs"
+//     when
+//          $course : Course( isPCNeeded() == true )
+//          $room : Room($pcCount : pcCount)
+//          $lecture: Lecture(room == $room, course == $course, studentSize > $pcCount, $studentSize : studentSize)
+//      then
+//          scoreHolder.addSoftConstraintMatch(kcontext, ($pcCount - $studentSize));
+//end
 //--------------------------------------
 
 
+/*
+    aantal pc's moet voldoen            HARD
+          ==> geen pc's in het lokaal terwijl ze nodig zijn
+ */
+
+//--------------------------------------
+//rule "NotEvenOnePcWhenNeeded"
+////todo Reactivate maybe (de regel lijkt niet in orde, wat is de link tussen room en course hier? )
+//     when
+//          $course : Course( isPCNeeded() == true )
+//          $ZeroPcs : Room(pcCount <= 0)
+//      then
+//          scoreHolder.addHardConstraintMatch(kcontext, -1);
+//end
+
+
+/*
+    aantal pc's moet voldoen            HARD
+          ==> meer dan 30% tekort --> hard score punten per percent af
+          per percent boven 30 een extra hard punt af
+ */
+
+//--------------------------------------
+//todo Reactivate
+//rule "MorenThen30PercentPCsMissing"
+//     when
+//          $course : Course( isPCNeeded() == true )
+//          $room : Room($pcCount : pcCount)
+//          Lecture(room == $room, course == $course, (studentSize / $pcCount) > 1.3f, $studentSize : studentSize )
+//      then
+//        double percent = ($studentSize / ($pcCount + 0.0d));
+//        int over30Percent = (int)( (percent - 1.3f) * 10.0f );
+//          scoreHolder.addSoftConstraintMatch(kcontext, -over30Percent);
+//        System.out.println("$course = " + $course);
+//        System.out.println("\t studentSize = " + $studentSize);
+//        System.out.println("\t $pcCount = " + $pcCount);
+//        System.out.println("\t over30Percent = " + over30Percent);
+//end
+
+//--------------------------------------
+//course dependencies
+//test hardcoded, abap moet plaatsvinden na java_ee_biz
+
+rule "CourseDependency"
+     when
+          $dependentCourse : Course( code == "ABAP_Objects", $courseDependencies: courseDependencies )
+          $dependentLecture: Lecture( course == $dependentCourse)
+//
+//          $collectedDependencyCourses: ArrayList()
+//                    from collect( Course( code == "Java_EE_BIZ"));
+
+//           $otherCourse:  Course( code == "Java_EE_BIZ")
+           $otherCourse: Course(code memberOf $courseDependencies)
+
+
+          //zoek op alle lectures
+          //voeg het vak toe aan de lijst wanneer de course gelijk is aan 'java ee'  en de datum voor de huidige course is
+          //todo voeg het vak toe aan de lijst wanneer het voorkomt in de coursedependencies en de datum voor de huidige course is
+//    	    $collectedDependencyCourses: ArrayList()
+//    		from collect(
+//    		 Lecture(course == $otherCourse, timeslotIndex >= $dependentLecture.timeslotIndex ));
+//todo rest hierboven uit comment
+
+//                $roomCount : Number(intValue > 1)  from collect(
+//                $course: Course(code == "Java_EE_BIZ")
+//                and exists Lecture(course == $course, room == $room),
+//                count($course)
+//            )
+      then
+          System.out.println(" $dependentCourse = " + $dependentCourse.toString());
+          System.out.println(" $otherCourse = " + $otherCourse.toString());
+          System.out.println(" $dependentLecture timeslot = " + $dependentLecture.getAbsoluteTimeslot() );
+//          scoreHolder.addHardConstraintMatch(kcontext, -$collectedDependencyCourses.size());
+end
+
+
+
+//rule voor student size te testen van elke course (debugging)
+//DEBUGGING RULES
+/*
+
+rule "DebugCourseStudentSize"
+     when
+          $room : Room($pcCount : pcCount)
+          Lecture(room == $room, $course: course, $studentSize : studentSize )
+
+      then
+        System.out.println("$course = " + $course);
+        System.out.println("\t studentSize = " + $studentSize);
+end
+
+
+
+*/
 
 
 //---------------
