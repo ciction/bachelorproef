@@ -28,6 +28,7 @@ import org.optaplanner.examples.common.domain.AbstractPersistable;
 public class Course extends AbstractPersistable {
 
 
+
     public static enum CourseType {
         Hoorcollege, //2 uur
         Werkcollege; //3 uur bij voorkeur

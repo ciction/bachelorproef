@@ -90,8 +90,9 @@ public class Lecture extends AbstractPersistable {
         this.period = period;
         if(period != null){
             this.absoluteTimeslot =
-                    period.getTimeslot().getTimeslotIndex()  +
-                            getDay().getDayIndex() * 8;
+                    period.getTimeslot().getTimeslotIndex()  + period.getDay().getDayIndex() * 8;
+//                    period.getTimeslot().getTimeslotIndex()  +
+//                            getDay().getDayIndex() * 8;
         }
 
     }

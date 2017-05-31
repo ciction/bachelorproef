@@ -365,16 +365,24 @@ end
 //minpunten
 rule "Dependency courses not before Dependent course"
      when
-          $dependentCourse : Course( code == "ABAP_Objects", $courseDependencies: courseDependencies )
-          $dependentLecture: Lecture( course == $dependentCourse)
+//          $dependentCourse : Course( code == "ABAP_Objects", $courseDependencies: courseDependencies )
+//          $dependentLecture: Lecture( course == $dependentCourse)
 
-          $otherCourse: Course( code == "Java_EE_BIZ");
+//          $otherCourse: Course( code == "Java_EE_BIZ");
           $collectedDependencyLectures: ArrayList()
-          from collect( Lecture( course.code == "Java_EE_BIZ", $timeslotIndex: timeslotIndex >= $dependentLecture.timeslotIndex ));
+//          from collect( Lecture( course.code == "Java_EE_BIZ", $timeslotIndex: timeslotIndex >= $dependentLecture.timeslotIndex ));
+          from collect( Lecture( course.code == "Java_EE_BIZ"));
       then
-      System.out.println($dependentLecture.getLabel());
+//      System.out.println($dependentLecture.getLabel());
       System.out.println($collectedDependencyLectures);
       System.out.println($collectedDependencyLectures.size());
+
+      Lecture lecture = (Lecture) $collectedDependencyLectures.get(0);
+      try{
+            System.out.println("day:" + lecture.getPeriod().getDay().getLabel());
+      }catch (Exception e){
+
+      }
 //      scoreHolder.addHardConstraintMatch(kcontext, -$collectedDependencyLectures.size());
 end
 

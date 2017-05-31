@@ -1,7 +1,7 @@
 Name: Digx
 Courses: 4
 Rooms: 2
-Days: 3
+Days: 2
 Periods_per_day: 8
 Curricula: 2
 Constraints: 2
@@ -10,7 +10,7 @@ DependentCourses: 1
 COURSES:
 ABAP_Objects S.Weemaels 6 1 5
 Java_EE_NW K.V.Ryckegem 2 1 3
-Java_EE_BIZ K.V.Ryckegem 4 1 3
+Java_EE_BIZ K.V.Ryckegem 7 1 3
 Networking B.Drabbé 2 1 6
 
 ROOMS:

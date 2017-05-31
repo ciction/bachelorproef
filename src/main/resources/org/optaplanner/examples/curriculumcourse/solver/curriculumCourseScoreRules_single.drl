@@ -1,0 +1,120 @@
+/*
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.optaplanner.examples.curriculumcourse.solver;
+    dialect "java"
+
+import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScoreHolder;
+
+import org.optaplanner.examples.curriculumcourse.domain.Course;
+import org.optaplanner.examples.curriculumcourse.domain.Curriculum;
+import org.optaplanner.examples.curriculumcourse.domain.CourseSchedule;
+import org.optaplanner.examples.curriculumcourse.domain.Day;
+import org.optaplanner.examples.curriculumcourse.domain.Lecture;
+import org.optaplanner.examples.curriculumcourse.domain.Period;
+import org.optaplanner.examples.curriculumcourse.domain.Room;
+import org.optaplanner.examples.curriculumcourse.domain.Teacher;
+import org.optaplanner.examples.curriculumcourse.domain.Timeslot;
+import org.optaplanner.examples.curriculumcourse.domain.UnavailablePeriodPenalty;
+import org.optaplanner.examples.curriculumcourse.domain.UnavailableDay;
+import org.optaplanner.examples.curriculumcourse.domain.UnavailablePeriodAllCourses;
+import org.optaplanner.examples.curriculumcourse.domain.solver.CourseConflict;
+
+//christophe
+//----------------
+import  org.optaplanner.examples.curriculumcourse.domain.My_messageClass;
+import java.util.ArrayList
+import java.util.HashMap
+import javassist.compiler.Lex
+
+//----------------
+
+global HardSoftScoreHolder scoreHolder;
+
+//helper rule for the flow
+//rule "go" salience 10
+//when
+//    $o: Object( )
+//then
+//    System.out.println($o.getClass().getSimpleName() + ": " + $o.toString());
+// end
+
+//minpunten
+//rule "Dependency courses not before Dependent course"
+//     when
+//          $dependentCourse : Course( code == "ABAP_Objects", $courseDependencies: courseDependencies )
+//          $dependentLecture: Lecture( course == $dependentCourse)
+//
+////          $otherCourse: Course( code == "Java_EE_BIZ");
+//          $collectedDependencyLectures: ArrayList()
+//          from collect( Lecture( course.code == "Java_EE_BIZ", timeslotIndex > $dependentLecture.timeslotIndex, timeslotIndex != null ));
+////          from collect( Lecture( course.code == "Java_EE_BIZ"));
+//      then
+//      System.out.println($dependentLecture.getLabel());
+//      System.out.println($collectedDependencyLectures);
+//      for (Object obj : $collectedDependencyLectures) {
+//        Lecture lecture = (Lecture)obj;
+//       System.out.println(lecture.getTimeslotIndex());
+//      }
+//      System.out.println($collectedDependencyLectures.size());
+////
+////      Lecture lecture = (Lecture) $collectedDependencyLectures.get(0);
+////      try{
+////            System.out.println("day:" + lecture.getPeriod().getDay().getLabel());
+////      }catch (Exception e){
+////
+////      }
+//      scoreHolder.addHardConstraintMatch(kcontext, -$collectedDependencyLectures.size());
+//end
+
+
+rule "Maximum aantal lesuren per dag per vak respecteren (bijvoorbeeld blokken van 3u"
+when
+    $course: Course( )
+    $dependentLecture: Lecture( course == $course, day != null)
+
+   $sameLecture: ArrayList(size > 3)
+        from collect( Lecture( course == $course, day == $dependentLecture.day , day != null ));
+then
+      System.out.println("3u rule");
+      //-1 per vergelijking uit de arraylist ==> bvb: 5 lessen ipv maximum 3 ==> (5 * -1)
+      scoreHolder.addSoftConstraintMatch(kcontext, -1 );
+ end
+
+rule "Dependency courses not before Dependent course"
+     when
+          $dependentCourse : Course( code == "ABAP_Objects", $courseDependencies: courseDependencies )
+          $dependentLecture: Lecture( course == $dependentCourse, $dependentLecturetimeslotIndex: timeslotIndex,  period != null)
+
+         $collectedDependencyLectures: ArrayList(size < 3)
+                   from collect( Lecture( course.code == "Java_EE_BIZ", period < $dependentLecture.period, period != null ));
+
+      then
+      System.out.println();
+      System.out.println("Lecture: " + $dependentLecture + " timeslotIndex: " + $dependentLecturetimeslotIndex);
+      Lecture dependentLecture = (Lecture)$dependentLecture;
+      System.out.println("$dependentLecture = " + $dependentLecture.getPeriod());
+
+      System.out.println($collectedDependencyLectures);
+      for (Object obj : $collectedDependencyLectures) {
+          Lecture lecture = (Lecture)obj;
+          System.out.printf(lecture.getDay().getDayIndex() + " ");
+      }
+//      scoreHolder.addHardConstraintMatch(kcontext, -$collectedDependencyLectures.size());
+      scoreHolder.addHardConstraintMatch(kcontext, - (3  - $collectedDependencyLectures.size()) );
+end
+
+
