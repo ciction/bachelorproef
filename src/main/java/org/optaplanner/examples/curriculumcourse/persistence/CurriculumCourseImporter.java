@@ -523,6 +523,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             schedule.setCurriculumList(curriculumList);
         }
 
+        //UNAVAILABILITY_CONSTRAINTS:
         private void readUnavailablePeriodPenaltyList(CourseSchedule schedule, Map<String, Course> courseMap,
                                                       Map<List<Integer>, Period> periodMap, int unavailablePeriodPenaltyListSize)
                 throws IOException {
@@ -539,7 +540,10 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                 String[] lineTokens = splitBySpacesOrTabs(line, 3);
 
                 penalty.setCourse(courseMap.get(lineTokens[0]));
-                int dayIndex = Integer.parseInt(lineTokens[1]);
+
+                DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+                String target = (lineTokens[1]);
+                int dayIndex = getDayIndexFromDateString(target,df);
                 int timeslotIndex = Integer.parseInt(lineTokens[2]);
 
                 Period period = periodMap.get(Arrays.asList(dayIndex, timeslotIndex));

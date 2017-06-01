@@ -384,6 +384,29 @@ then
  end
 
 
+rule "CourseCompactness"
+    when
+        $course : Course()
+        $lecture: Lecture(course == $course,
+                  $day : day, $timeslotIndex : timeslotIndex, period != null)
+
+     $sameLectures: ArrayList(size > 1)
+        from collect( Lecture( course == $course, day == $day , day != null ));
+
+
+        not Lecture(course == $course,
+            day == $day,
+            timeslotIndex == ($timeslotIndex - 1) || timeslotIndex == ($timeslotIndex + 1)
+        )
+
+    then
+        System.out.println("CourseCompactness " + $lecture.getLabel() );
+        System.out.println("$sameLectures = " + $sameLectures);
+        scoreHolder.addSoftConstraintMatch(kcontext, -1);
+end
+
+
+
 //rule "teacherCompactness blokken van 2"
 //    when
 //        $teacher: Teacher()
