@@ -1,21 +1,23 @@
 Name: Digx
 Courses: 4
 Rooms: 2
-Days: 2
+Days: 7
 Periods_per_day: 8
 Curricula: 2
-Constraints: 2
+Constraints: 1
+unavailable_hours_all: 3
+unavailable_days_all: 1
 DependentCourses: 1
 
 COURSES:
-ABAP_Objects S.Weemaels 6 1 5
-Java_EE_NW K.V.Ryckegem 2 1 3
-Java_EE_BIZ K.V.Ryckegem 7 1 3
-Networking B.Drabbé 2 1 6
+ABAP_Objects S.Weemaels 15 3 6 true 4
+Java_EE_NW K.V.Ryckegem 17 1 3 false
+Java_EE_BIZ K.V.Ryckegem 17 1 3 false
+Networking B.Drabbé 7 3 6 false
 
 ROOMS:
-A	6
-B	6
+A	6   6
+B	6   5
 
 CURRICULA:
 DigX3_Bizit    3 ABAP_Objects Java_EE_BIZ Networking
@@ -23,7 +25,14 @@ DigX3_Network  2  Java_EE_NW Networking
 
 UNAVAILABILITY_CONSTRAINTS:
 Java_EE_NW 0 0
-Java_EE_BIZ 0 0
+
+UNAVAILABLE_HOURS_ALL:
+03/03/2017 0
+03/03/2017 1
+03/03/2017 2
+
+UNAVAILABLE_DAYS_ALL:
+02/03/2017
 
 DEPENDENCIES:
 ABAP_Objects Java_EE_BIZ

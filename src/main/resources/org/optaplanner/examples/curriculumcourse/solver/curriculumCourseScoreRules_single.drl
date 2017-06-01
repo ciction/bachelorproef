@@ -29,22 +29,140 @@ import org.optaplanner.examples.curriculumcourse.domain.Room;
 import org.optaplanner.examples.curriculumcourse.domain.Teacher;
 import org.optaplanner.examples.curriculumcourse.domain.Timeslot;
 import org.optaplanner.examples.curriculumcourse.domain.UnavailablePeriodPenalty;
-import org.optaplanner.examples.curriculumcourse.domain.UnavailableDay;
-import org.optaplanner.examples.curriculumcourse.domain.UnavailablePeriodAllCourses;
 import org.optaplanner.examples.curriculumcourse.domain.solver.CourseConflict;
 
-//christophe
-//----------------
+
+//EHB imports
 import  org.optaplanner.examples.curriculumcourse.domain.My_messageClass;
 import java.util.ArrayList
 import java.util.HashMap
 import javassist.compiler.Lex
 
-//----------------
-
 global HardSoftScoreHolder scoreHolder;
 
-//helper rule for the flow
+// ############################################################################
+// Hard constraints
+// ############################################################################
+
+
+
+// Lectures: A missing or extra lecture of a course.
+// This hard constraint is build-in: the correct number of Lecture's is created
+
+// Conflicts: Two conflicting lectures in the same period.
+// Three conflicting lectures count as 3 violations: one for each pair.
+rule "conflictingLecturesDifferentCourseInSamePeriod"
+    when
+        $courseConflict : CourseConflict($leftCourse : leftCourse, $rightCourse : rightCourse)
+        $leftLecture : Lecture(course == $leftCourse, $period : period, period != null)
+        $rightLecture : Lecture(course == $rightCourse, period == $period, this != $leftLecture)
+    then
+        scoreHolder.addHardConstraintMatch(kcontext, - $courseConflict.getConflictCount());
+end
+rule "conflictingLecturesSameCourseInSamePeriod"
+    when
+        Lecture($leftId : id, $leftCourse : course, $period : period, period != null)
+        Lecture(course == $leftCourse, period == $period, id > $leftId)
+    then
+        scoreHolder.addHardConstraintMatch(kcontext, - (1 + $leftCourse.getCurriculumList().size()));
+end
+
+// RoomOccupancy: Two lectures in the same room at the same period.
+// Any extra lecture in the same period and room counts as one more violation.
+rule "roomOccupancy"
+    when
+        Lecture($leftId : id, period != null, $period : period, room != null, $room : room)
+        // $leftLecture has lowest id of the period+room combo
+        not Lecture(period == $period, room == $room, id < $leftId)
+        // rightLecture has the same period
+        Lecture(period == $period, room == $room, id > $leftId, $rightId : id)
+    then
+        scoreHolder.addHardConstraintMatch(kcontext, -1);
+end
+
+// Availabilities: Each lecture in a period unavailable for that course.
+rule "unavailablePeriodPenalty"
+    when
+        UnavailablePeriodPenalty($course : course, $period : period)
+        Lecture(course == $course, period == $period)
+    then
+        scoreHolder.addHardConstraintMatch(kcontext, -10);
+end
+
+// ############################################################################
+// Soft constraints
+// ############################################################################
+
+// RoomCapacity: For each lecture, the number of students that attend the course should be less or equal
+// than the number of seats of all the rooms that host its lectures.
+// Each student above the capacity counts as 1 point of penalty.
+rule "roomCapacity"
+    when
+        $room : Room($capacity : capacity)
+        Lecture(room == $room, studentSize > $capacity, $studentSize : studentSize)
+    then
+        scoreHolder.addSoftConstraintMatch(kcontext, ($capacity - $studentSize));
+end
+
+// MinimumWorkingDays: The lectures of each course should be spread into a minimum number of days.
+// Each day below the minimum counts as 5 points of penalty.
+rule "minimumWorkingDays"
+    when
+        $course : Course($minWorkingDaySize : minWorkingDaySize)
+        $dayCount : Number(intValue < $minWorkingDaySize) from accumulate(
+            $day : Day()
+            and exists Lecture(course == $course, day == $day),
+            count($day)
+        )
+        // An uninitialized schedule should have no constraints broken
+        exists Lecture(course == $course, period != null)
+    then
+        scoreHolder.addSoftConstraintMatch(kcontext, (($dayCount.intValue() - $minWorkingDaySize) * 5));
+end
+
+// CurriculumCompactness: Lectures belonging to a curriculum should be adjacent
+// to each other (i.e., in consecutive periods).
+// For a given curriculum we account for a violation every time there is one lecture not adjacent
+// to any other lecture within the same day.
+// Each isolated lecture in a curriculum counts as 2 points of penalty.
+rule "curriculumCompactness"
+    when
+        $curriculum : Curriculum()
+
+        Lecture(curriculumList contains $curriculum,
+            $day : day, $timeslotIndex : timeslotIndex, period != null
+        )
+        not Lecture(curriculumList contains $curriculum,
+            day == $day, timeslotIndex == ($timeslotIndex - 1)
+        )
+        not Lecture(curriculumList contains $curriculum,
+            day == $day, timeslotIndex == ($timeslotIndex + 1)
+        )
+    then
+        scoreHolder.addSoftConstraintMatch(kcontext, -2);
+end
+
+// RoomStability: All lectures of a course should be given in the same room.
+// Each distinct room used for the lectures of a course, but the first, counts as 1 point of penalty.
+rule "roomStability"
+    when
+        $course : Course()
+        $roomCount : Number(intValue > 1) from accumulate(
+            $room : Room()
+            and exists Lecture(course == $course, room == $room),
+            count($room)
+        )
+    then
+        scoreHolder.addSoftConstraintMatch(kcontext, -($roomCount.intValue() - 1));
+end
+
+
+// ############################################################################
+// EHB constraints
+// ############################################################################
+
+
+////helper rule for the flow
 //rule "go" salience 10
 //when
 //    $o: Object( )
@@ -52,69 +170,49 @@ global HardSoftScoreHolder scoreHolder;
 //    System.out.println($o.getClass().getSimpleName() + ": " + $o.toString());
 // end
 
-//minpunten
-//rule "Dependency courses not before Dependent course"
-//     when
-//          $dependentCourse : Course( code == "ABAP_Objects", $courseDependencies: courseDependencies )
-//          $dependentLecture: Lecture( course == $dependentCourse)
 //
-////          $otherCourse: Course( code == "Java_EE_BIZ");
-//          $collectedDependencyLectures: ArrayList()
-//          from collect( Lecture( course.code == "Java_EE_BIZ", timeslotIndex > $dependentLecture.timeslotIndex, timeslotIndex != null ));
-////          from collect( Lecture( course.code == "Java_EE_BIZ"));
-//      then
-//      System.out.println($dependentLecture.getLabel());
-//      System.out.println($collectedDependencyLectures);
-//      for (Object obj : $collectedDependencyLectures) {
-//        Lecture lecture = (Lecture)obj;
-//       System.out.println(lecture.getTimeslotIndex());
-//      }
-//      System.out.println($collectedDependencyLectures.size());
+//rule "CourseCompactness 4"
+//    when
+//        $course : Course(urenPerBlok == 4)
+//
+//        $lecture: Lecture(course == $course,
+//            $day : day, $period: period, $timeslotIndex : timeslotIndex, period != null
+//        )
+//
+////        $sameLectures: ArrayList()
+////             from collect( Lecture( course == $course,
+////             4 > Math.abs($timeslotIndex - timeslotIndex ) &&  Math.abs($timeslotIndex - timeslotIndex ) > 5,
+////               day == $lecture.day , day != null ));
+//
+////            //geen zelfde les ervoor
+////            not Lecture( course == $course,
+////                day == $day,
+////                timeslotIndex == ($timeslotIndex - 1)
+////                )
 ////
-////      Lecture lecture = (Lecture) $collectedDependencyLectures.get(0);
-////      try{
-////            System.out.println("day:" + lecture.getPeriod().getDay().getLabel());
-////      }catch (Exception e){
-////
-////      }
-//      scoreHolder.addHardConstraintMatch(kcontext, -$collectedDependencyLectures.size());
+////           //geen zelfde les er achter
+////           not Lecture( course == $course,
+////                     day == $day,
+////                     timeslotIndex == ($timeslotIndex + 1)
+////                     )
+//
+//
+//    //collect lessen erna die dag
+//   $LecturesAfter: ArrayList(size != 2)
+//             from collect(
+//             Lecture( course == $course, period > $period, day == $lecture.day , day != null ));
+//
+//
+//
+//
+//    then
+//        System.out.println("CourseCompactness 4: " + $lecture.getLabel() );
+//        System.out.println("period" + $lecture.getPeriod() );
+//
+//        System.out.println("$LecturesAfter = " + $LecturesAfter);
+//        for (Object obj : $LecturesAfter ) {
+//            Lecture lecture= (Lecture)obj;
+//            System.out.println("period = " + lecture.getPeriod());
+//        }
+//        scoreHolder.addSoftConstraintMatch(kcontext, -3);
 //end
-
-
-rule "Maximum aantal lesuren per dag per vak respecteren (bijvoorbeeld blokken van 3u"
-when
-    $course: Course( )
-    $dependentLecture: Lecture( course == $course, day != null)
-
-   $sameLecture: ArrayList(size > 3)
-        from collect( Lecture( course == $course, day == $dependentLecture.day , day != null ));
-then
-      System.out.println("3u rule");
-      //-1 per vergelijking uit de arraylist ==> bvb: 5 lessen ipv maximum 3 ==> (5 * -1)
-      scoreHolder.addSoftConstraintMatch(kcontext, -1 );
- end
-
-rule "Dependency courses not before Dependent course"
-     when
-          $dependentCourse : Course( code == "ABAP_Objects", $courseDependencies: courseDependencies )
-          $dependentLecture: Lecture( course == $dependentCourse, $dependentLecturetimeslotIndex: timeslotIndex,  period != null)
-
-         $collectedDependencyLectures: ArrayList(size < 3)
-                   from collect( Lecture( course.code == "Java_EE_BIZ", period < $dependentLecture.period, period != null ));
-
-      then
-      System.out.println();
-      System.out.println("Lecture: " + $dependentLecture + " timeslotIndex: " + $dependentLecturetimeslotIndex);
-      Lecture dependentLecture = (Lecture)$dependentLecture;
-      System.out.println("$dependentLecture = " + $dependentLecture.getPeriod());
-
-      System.out.println($collectedDependencyLectures);
-      for (Object obj : $collectedDependencyLectures) {
-          Lecture lecture = (Lecture)obj;
-          System.out.printf(lecture.getDay().getDayIndex() + " ");
-      }
-//      scoreHolder.addHardConstraintMatch(kcontext, -$collectedDependencyLectures.size());
-      scoreHolder.addHardConstraintMatch(kcontext, - (3  - $collectedDependencyLectures.size()) );
-end
-
-

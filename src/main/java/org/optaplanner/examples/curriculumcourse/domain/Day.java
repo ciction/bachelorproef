@@ -56,6 +56,9 @@ public class Day extends AbstractPersistable {
         return dayIndex;
     }
 
+      //EHB
+    // Het aanmaken van een dat index maakt ook een date aan
+    // de datum wordt berekend op basis van de startdatum + de offset in de day index
     public void setDayIndex(int dayIndex) {
         this.dayIndex = dayIndex;
         this.date  = new Date(SchedulerSettings.startDate.getTime() + (DayInMilliSeconds * dayIndex));
@@ -64,6 +67,7 @@ public class Day extends AbstractPersistable {
             init();
         }
     }
+
 
     public List<Period> getPeriodList() {
         return periodList;

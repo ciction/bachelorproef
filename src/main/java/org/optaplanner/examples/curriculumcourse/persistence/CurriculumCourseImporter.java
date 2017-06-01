@@ -23,13 +23,18 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import javafx.scene.control.Alert;
+import javafx.util.Pair;
 import org.optaplanner.core.api.domain.solution.Solution;
 import org.optaplanner.examples.common.persistence.AbstractTxtSolutionImporter;
 import org.optaplanner.examples.curriculumcourse.domain.*;
 
+import javax.swing.*;
+
 import static org.optaplanner.examples.curriculumcourse.domain.WeekConfiguration.*;
 
 public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
+
 
     private static final String INPUT_FILE_SUFFIX = "ctt";
     private static final String SPLIT_REGEX = "[\\ \\t]+";
@@ -53,6 +58,8 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
     public static class CurriculumCourseInputBuilder extends TxtInputBuilder {
 
+
+        private Map<Pair<Date, Integer>, Period> _periodMapDateBased = new HashMap<Pair<Date, Integer>, Period>();
 
         //int wednessDayTimeSlots = 4;
         public  void setWeekConfiguration(){
@@ -90,7 +97,11 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             int curriculumListSize = readIntegerValue("Curricula:");
             // Constraints: 8
             int unavailablePeriodPenaltyListSize = readIntegerValue("Constraints:");
-            // DependentCourses: 8
+            // unavailable_hours_all: 8
+            int unavailablePeriodAllListSize = readIntegerValue("unavailable_hours_all:");
+            // unavailable_days_all: 8
+            int unavailable_days_all_Size = readIntegerValue("unavailable_days_all:");
+//             DependentCourses: 8
             int dependentCourseSize = readIntegerValue("DependentCourses:");
 
             //COURSES:
@@ -109,6 +120,13 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
             //UNAVAILABILITY_CONSTRAINTS:
             readUnavailablePeriodPenaltyList( schedule, courseMap, periodMap, unavailablePeriodPenaltyListSize);
+
+            //UNAVAILABLE_HOURS_ALL:
+            readUnavailablePeriodsALLList( schedule, courseMap, periodMap, unavailablePeriodAllListSize);
+
+            //UNAVAILABLE_DAYS_ALL:
+            readUnavailableDaysAllList( schedule, courseMap, periodMap, unavailable_days_all_Size);
+
 
             //DEPENDENCIES:
             readDependencies(courseMap, dependentCourseSize);
@@ -202,15 +220,43 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             for (int i = 0; i < courseListSize; i++) {                                   //Courses: 3 --> 3 times forloop
                 Course course = new Course();
                 course.setId((long) i);
-                // Courses: <CourseID> <Teacher> <# Lectures> <MinWorkingDays> <# Students>
+                // COURSES:
+                // <CourseID> <Teacher> <# Lectures> <MinWorkingDays> <# Students> <need room pc's )
                 String line = bufferedReader.readLine();
-                String[] lineTokens = splitBySpacesOrTabs(line, 5);                     // 6 parameters per lijn, zelf een toegevoegd (uren dat een les duurt )
-                course.setCode(lineTokens[0]);                                          //naam van het vak
+                String[] lineTokens = splitBySpacesOrTabs(line);                     // minmum 5 parameters per lijn
+
+                int minimumCourseParameters = 5;
+                if (lineTokens.length < minimumCourseParameters) {
+                    JOptionPane.showMessageDialog(null, "Error: Read line(" + line +
+                            "), in .ctt file  is expected to contain at least " + minimumCourseParameters + " tokens.");
+                    throw new IllegalArgumentException("Read line (" + line
+                            + ") is expected to contain at least " + minimumCourseParameters + " tokens.");
+                }
+
+                course.setCode(lineTokens[0]);                                          //naam van het vak + type
+                // op basis van  de code bepalen we of het om een Werkcollege of Hoorcollege gaat
+                // ==> "_WK" zijn werkcollegdes (blokken van 3u) hoorcolleges zijn blokken van 2u
+                // om blokken van bijvoorbeeld 1u te hebben moet het aantal uur per blok ingegeven worden na "setcode"
+
                 course.setTeacher(findOrCreateTeacher(teacherMap, lineTokens[1]));      //naam van de prof
                 course.setLectureSize(Integer.parseInt(lineTokens[2]));                 //lecuture size ? --> hoeveel keer het voorkomt ?
                 course.setMinWorkingDaySize(Integer.parseInt(lineTokens[3]));           //MinWorkingDaySize --> // Lectures of the same course should be spread out into a minimum number of days.
                 course.setCurriculumList(new ArrayList<Curriculum>());
                 course.setStudentSize(Integer.parseInt(lineTokens[4]));                 //setStudentSize aantal studenten voor dit vak
+
+                //pc
+                if(lineTokens.length >= 6){
+                    course.setPCNeeded(Boolean.parseBoolean(lineTokens[5]));                 //check of er computers nodig zijn in het lokaal voor dit vak
+                }
+                else{
+                    course.setPCNeeded(false);
+                }
+
+                //uren per blok
+                if(lineTokens.length >= 7){
+                    course.setUrenPerBlok(Integer.parseInt(lineTokens[6]));
+                }
+
 
 //
 
@@ -247,11 +293,13 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             for (int i = 0; i < roomListSize; i++) {
                 Room room = new Room();
                 room.setId((long) i);
-                // Rooms: <RoomID> <Capacity>
+                // Rooms: <RoomID> <Capacity> <Custom - PCcount>
                 String line = bufferedReader.readLine();
-                String[] lineTokens = splitBySpacesOrTabs(line, 2);
+                //
+                String[] lineTokens = splitBySpacesOrTabs(line, 3);
                 room.setCode(lineTokens[0]);
                 room.setCapacity(Integer.parseInt(lineTokens[1]));
+                room.setPcCount(Integer.parseInt(lineTokens[2]));
                 roomList.add(room);
             }
             schedule.setRoomList(roomList);
@@ -331,6 +379,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
             int periodListSize = dayListSize * timeslotListSize; // --> original
             Map<List<Integer>, Period> periodMap = new HashMap<List<Integer>, Period>(periodListSize);
+            Map<Pair<Date,Integer>, Period> periodMapDateBased =  new HashMap<Pair<Date,Integer>, Period>(periodListSize);
 
             //int periodListSize = (dayListSize * timeslotListSize) - (getWednessdayTimeDifference(timeslotListSize) * getAmountOfWednesDays(dayListSize));
 //            int periodListSize = calculatePeriodListSize(dayListSize); //christophe
@@ -386,6 +435,11 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                     period.setTimeslot(timeslotList.get(j));
                     periodList.add(period);
                     periodMap.put(Arrays.asList(i, j), period);
+
+                    Pair<Date,Integer> datePeriod = new Pair(day.getDate(),j);
+                    periodMapDateBased.put(datePeriod, period);
+
+
                     day.getPeriodList().add(period);
                 }
 //                Day newDay = dayList.get(i);
@@ -426,6 +480,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
             }
             schedule.setPeriodList(periodList);
+            this._periodMapDateBased = periodMapDateBased;
             return periodMap;
 //            schedule.setPeriodList(newPeriodList);
 //            return newPeriodMap;
@@ -486,6 +541,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                 penalty.setCourse(courseMap.get(lineTokens[0]));
                 int dayIndex = Integer.parseInt(lineTokens[1]);
                 int timeslotIndex = Integer.parseInt(lineTokens[2]);
+
                 Period period = periodMap.get(Arrays.asList(dayIndex, timeslotIndex));
 
                 if (period == null) {
@@ -497,45 +553,101 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
             }
 
-            int UnavailablePeriodAllCoursesListSize = 1;
-            List<UnavailablePeriodAllCourses> UnavailablePeriodAllCoursesList = new ArrayList<UnavailablePeriodAllCourses>(UnavailablePeriodAllCoursesListSize);
-            for (int i = 0; i < UnavailablePeriodAllCoursesListSize; i++) {
+
+
+
+            schedule.setUnavailablePeriodPenaltyList(penaltyList);
+
+        }
+
+
+        private void readUnavailablePeriodsALLList(CourseSchedule schedule, Map<String, Course> courseMap,
+                                      Map<List<Integer>, Period> periodMap, int unavailablePeriodAllListSize)
+                throws IOException{
+
+            readEmptyLine();
+            readConstantLine("UNAVAILABLE_HOURS_ALL:");
+            List<UnavailablePeriodAllCourses> UnavailablePeriodAllCoursesList = new ArrayList<UnavailablePeriodAllCourses>(unavailablePeriodAllListSize);
+
+            for (int i = 0; i < unavailablePeriodAllListSize; i++) {
                 UnavailablePeriodAllCourses unavailablePeriodAll = new UnavailablePeriodAllCourses();
                 unavailablePeriodAll.setId((long) i);
 
-                int dayIndex = 0;
-                int timeslotIndex = 0;
+                String line = bufferedReader.readLine();
+                String[] lineTokens = splitBySpacesOrTabs(line, 2);
+
+
+
+
+
+                DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+                String target = (lineTokens[0]);
+
+                int dayIndex = getDayIndexFromDateString(target,df);
+                int timeslotIndex  = (Integer.parseInt(lineTokens[1]));
+
                 Period period = periodMap.get(Arrays.asList(dayIndex, timeslotIndex));
+
+
+                
                 unavailablePeriodAll.setPeriod(period);
 
                 UnavailablePeriodAllCoursesList.add(unavailablePeriodAll);
 
             }
 
+            schedule.setUnavailablePeriodAllCoursesList(UnavailablePeriodAllCoursesList);
 
-            //todo unavailable days via ctt files
-            //custom hardcoded unavailable days
-            UnavailableDay unavailableDay = new UnavailableDay();
-            int UnavailableDayListSize = 1;
+
+        }
+
+        private void readUnavailableDaysAllList(CourseSchedule schedule, Map<String, Course> courseMap,
+                                      Map<List<Integer>, Period> periodMap, int UnavailableDayListSize)
+                throws IOException{
+            //todo WIP
+
+            readEmptyLine();
+            readConstantLine("UNAVAILABLE_DAYS_ALL:");
             List<UnavailableDay> unavailableDayList = new ArrayList<UnavailableDay>(UnavailableDayListSize);
 
-            String target = "01/03/2017";
-            DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-            try {
-                Date date =  df.parse(target);
-                unavailableDay.setDay(1);
-                unavailableDay.setDate(date);
-                unavailableDay.setId((long) 0);
-            } catch (ParseException e) {
-                e.printStackTrace();
+            for (int i = 0; i < UnavailableDayListSize; i++) {
+
+//                UnavailableDay unavailableDay = new UnavailableDay();
+//
+//                String target = "02/03/2017";
+//                DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+//                try {
+//                    Date date =  df.parse(target);
+//                    unavailableDay.setDay(1);
+//                    unavailableDay.setDate(date);
+//                    unavailableDay.setId((long) 0);
+//                } catch (ParseException e) {
+//                    e.printStackTrace();
+//                }
+
+                String line = bufferedReader.readLine();
+                String[] lineTokens = splitBySpacesOrTabs(line, 1);
+
+                UnavailableDay unavailableDay = new UnavailableDay();
+//                unavailableDay.setDay(i);
+
+                DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+                String target = lineTokens[0];
+                try {
+                    Date date =  df.parse(target);
+                    unavailableDay.setDate(date);
+                    unavailableDay.setId((long) 0);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+
+                unavailableDayList.add(unavailableDay);
             }
-            //todo change unavailable days
-//            unavailableDayList.add(unavailableDay);
 
-
-            schedule.setUnavailablePeriodPenaltyList(penaltyList);
-            schedule.setUnavailablePeriodAllCoursesList(UnavailablePeriodAllCoursesList);
             schedule.setUnavailableDayList(unavailableDayList);
+
+
         }
 
 
@@ -604,6 +716,43 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                 }
             }
             schedule.setLectureList(lectureList);
+        }
+
+
+        private int getDayIndexFromDateString(String dateString, DateFormat df) {
+            int dayIndex = -1;
+            try {
+                Date date = df.parse(dateString);
+                dayIndex = getDayIndexFromDate(date);
+                if(dayIndex < 0){
+                    GenerateError("The date (" + dateString + ") can not be in the past");
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            return  dayIndex;
+        }
+
+        private int getDayIndexFromDate(Date date) {
+            Calendar cal1 = new GregorianCalendar();
+            Calendar cal2 = new GregorianCalendar();
+
+            Date startDate = SchedulerSettings.startDate;
+            cal1.setTime(startDate);
+            cal2.setTime(date);
+            return daysBetween(cal1.getTime(),cal2.getTime());
+
+        }
+
+
+        private int daysBetween(Date d1, Date d2){
+            return (int)( (d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+        }
+
+
+        private void GenerateError(String message){
+            JOptionPane.showMessageDialog(null, message);
+            throw new IllegalArgumentException(message);
         }
 
     }

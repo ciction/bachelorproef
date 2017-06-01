@@ -34,6 +34,9 @@ public class Course extends AbstractPersistable {
         Werkcollege; //3 uur bij voorkeur
     }
 
+
+    private int urenPerBlok;
+
     private String code;
 
     private Teacher teacher;
@@ -57,10 +60,14 @@ public class Course extends AbstractPersistable {
     public void setCode(String code) {
         this.code = code;
         if(code.toUpperCase().endsWith("_WK")){
+            //3 uur per dag bij voorkeur (automatisch zo veel mogelijk in blok gegroepeerd)
             this.setCourseType(CourseType.Werkcollege);
+            this.setUrenPerBlok(3);
         }
         else{
+            //2 uur per dag bij voorkeur (automatisch zo veel mogelijk in blok gegroepeerd)
             this.setCourseType(CourseType.Hoorcollege);
+            this.setUrenPerBlok(2);
         }
     }
 
@@ -83,6 +90,15 @@ public class Course extends AbstractPersistable {
     public void setCourseType(CourseType courseType) {
         this.courseType = courseType;
     }
+
+    public int getUrenPerBlok() {
+        return urenPerBlok;
+    }
+
+    public void setUrenPerBlok(int urenPerBlok) {
+        this.urenPerBlok = urenPerBlok;
+    }
+
 
     public void setLectureSize(int lectureSize) {
         this.lectureSize = lectureSize;

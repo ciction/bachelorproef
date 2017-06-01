@@ -24,7 +24,6 @@ import java.util.Date;
 @XStreamAlias("UnavailableDay")
 public class UnavailableDay extends AbstractPersistable {
 
-    private int day;
     private Date date;
 
     public Date getDate() {
@@ -35,17 +34,10 @@ public class UnavailableDay extends AbstractPersistable {
         this.date = date;
     }
 
-    public int getDay() {
-        return day;
-    }
-
-    public void setDay(int day) {
-        this.day = day;
-    }
 
     @Override
     public String toString() {
-        return "@" + day;
+        return "@" + date;
     }
 
 }
