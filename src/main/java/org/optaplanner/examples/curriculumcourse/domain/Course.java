@@ -30,12 +30,13 @@ public class Course extends AbstractPersistable {
 
 
     public static enum CourseType {
-        Hoorcollege, //2 uur
-        Werkcollege; //3 uur bij voorkeur
+        Hoorcollege, //default 2 uur per dag voorkeur
+        Werkcollege; //default 3 uur per dag voorkeur
+        //uren per dag kunnen manueel overschreven worden
     }
 
 
-    private int urenPerBlok;
+    private int urenPerDag;
 
     private String code;
 
@@ -62,12 +63,12 @@ public class Course extends AbstractPersistable {
         if(code.toUpperCase().endsWith("_WK")){
             //3 uur per dag bij voorkeur (automatisch zo veel mogelijk in blok gegroepeerd)
             this.setCourseType(CourseType.Werkcollege);
-            this.setUrenPerBlok(3);
+            this.setUrenPerDag(3);
         }
         else{
             //2 uur per dag bij voorkeur (automatisch zo veel mogelijk in blok gegroepeerd)
             this.setCourseType(CourseType.Hoorcollege);
-            this.setUrenPerBlok(2);
+            this.setUrenPerDag(2);
         }
     }
 
@@ -91,12 +92,12 @@ public class Course extends AbstractPersistable {
         this.courseType = courseType;
     }
 
-    public int getUrenPerBlok() {
-        return urenPerBlok;
+    public int getUrenPerDag() {
+        return urenPerDag;
     }
 
-    public void setUrenPerBlok(int urenPerBlok) {
-        this.urenPerBlok = urenPerBlok;
+    public void setUrenPerDag(int urenPerDag) {
+        this.urenPerDag = urenPerDag;
     }
 
 

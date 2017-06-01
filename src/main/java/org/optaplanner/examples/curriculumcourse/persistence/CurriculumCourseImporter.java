@@ -23,7 +23,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import javafx.scene.control.Alert;
 import javafx.util.Pair;
 import org.optaplanner.core.api.domain.solution.Solution;
 import org.optaplanner.examples.common.persistence.AbstractTxtSolutionImporter;
@@ -133,6 +132,27 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
             readEmptyLine();
             readConstantLine("END\\.");
+
+
+            //todo remove hardcoded
+            List<CourseDependency> CourseDependenciesList = new ArrayList<CourseDependency>();
+            CourseDependency courseDependency = new CourseDependency();
+            courseDependency.setDependentCourse("ABAP_Objects");
+            courseDependency.setDependency("Java_EE_BIZ");
+            courseDependency.setDependentHours(5);
+            CourseDependenciesList.add(courseDependency);
+
+
+            courseDependency = new CourseDependency();
+            courseDependency.setDependentCourse("ABAP_Objects");
+            courseDependency.setDependency("Networking");
+            courseDependency.setDependentHours(5);
+            CourseDependenciesList.add(courseDependency);
+
+            schedule.setCourseDependencyList(CourseDependenciesList);
+
+            //-----------------------
+
             createLectureList(schedule);
 
             int possibleForOneLectureSize = schedule.getPeriodList().size() * schedule.getRoomList().size();
@@ -254,7 +274,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
                 //uren per blok
                 if(lineTokens.length >= 7){
-                    course.setUrenPerBlok(Integer.parseInt(lineTokens[6]));
+                    course.setUrenPerDag(Integer.parseInt(lineTokens[6]));
                 }
 
 

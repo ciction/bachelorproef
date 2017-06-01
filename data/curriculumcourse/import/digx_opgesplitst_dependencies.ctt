@@ -1,7 +1,7 @@
 Name: Digx
 Courses: 4
 Rooms: 2
-Days: 4
+Days: 5
 Periods_per_day: 8
 Curricula: 2
 Constraints: 3
@@ -10,10 +10,10 @@ unavailable_days_all: 0
 DependentCourses: 1
 
 COURSES:
-ABAP_Objects S.Weemaels 5 1 6 true 4
-Java_EE_NW K.V.Ryckegem 5 3 3 false
-Java_EE_BIZ K.V.Ryckegem 5 3 3 false
-Networking B.Drabbé 7 3 6 false
+ABAP_Objects S.Weemaels 10 1 6 true 4
+Java_EE_NW K.V.Ryckegem 12 3 3 false
+Java_EE_BIZ K.V.Ryckegem 5 3 3 false 3
+Networking B.Drabbé 12 3 6 false
 
 ROOMS:
 A	6   6

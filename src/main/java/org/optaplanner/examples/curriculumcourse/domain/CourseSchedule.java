@@ -41,6 +41,7 @@ public class CourseSchedule extends AbstractPersistable implements Solution<Hard
     private List<Teacher> teacherList;
     private List<Curriculum> curriculumList;
     private List<Course> courseList;
+    private List<CourseDependency> courseDependencyList;
     private List<Day> dayList;
     private List<Timeslot> timeslotList;
     private List<Period> periodList;
@@ -85,6 +86,15 @@ public class CourseSchedule extends AbstractPersistable implements Solution<Hard
 
     public void setCourseList(List<Course> courseList) {
         this.courseList = courseList;
+    }
+
+    //EHB rooster
+    public List<CourseDependency> getCourseDependencyList() {
+        return courseDependencyList;
+    }
+
+    public void setCourseDependencyList(List<CourseDependency> courseDependencyList) {
+        this.courseDependencyList = courseDependencyList;
     }
 
     public List<Day> getDayList() {
@@ -178,6 +188,7 @@ public class CourseSchedule extends AbstractPersistable implements Solution<Hard
         facts.addAll(teacherList);
         facts.addAll(curriculumList);
         facts.addAll(courseList);
+        facts.addAll(courseDependencyList);
         facts.addAll(dayList);
         facts.addAll(timeslotList);
         facts.addAll(periodList);
@@ -185,6 +196,7 @@ public class CourseSchedule extends AbstractPersistable implements Solution<Hard
         facts.addAll(unavailablePeriodAllCoursesList);
         facts.addAll(unavailablePeriodPenaltyList);
         facts.addAll(unavailableDayList);
+
         facts.addAll(precalculateCourseConflictList());
         // Do not add the planning entity's (lectureList) because that will be done automatically
         return facts;

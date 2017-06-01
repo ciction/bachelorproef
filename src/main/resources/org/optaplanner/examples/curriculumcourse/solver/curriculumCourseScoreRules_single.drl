@@ -173,7 +173,7 @@ end
 //
 //rule "CourseCompactness 4"
 //    when
-//        $course : Course(urenPerBlok == 4)
+//        $course : Course(urenPerDag == 4)
 //
 //        $lecture: Lecture(course == $course,
 //            $day : day, $period: period, $timeslotIndex : timeslotIndex, period != null
