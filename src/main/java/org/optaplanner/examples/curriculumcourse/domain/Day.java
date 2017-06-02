@@ -22,7 +22,6 @@ import java.util.*;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.optaplanner.examples.common.domain.AbstractPersistable;
-import sun.security.ssl.Debug;
 
 @XStreamAlias("Day")
 public class Day extends AbstractPersistable {
@@ -33,6 +32,9 @@ public class Day extends AbstractPersistable {
     private static int DayInMilliSeconds = 1000 * 60 * 60 * 24;
     private static final Date today = new Date();
     private static boolean isInitialized = false;
+
+    private int middayPauzeSlot1 = 4;
+    private int middayPauzeSlot2 = 5;
 
 
     private static void init(){
@@ -92,6 +94,22 @@ public class Day extends AbstractPersistable {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public int getMiddayPauzeSlot1() {
+        return middayPauzeSlot1;
+    }
+
+    public void setMiddayPauzeSlot1(int middayPauzeSlot1) {
+        this.middayPauzeSlot1 = middayPauzeSlot1;
+    }
+
+    public int getMiddayPauzeSlot2() {
+        return middayPauzeSlot2;
+    }
+
+    public void setMiddayPauzeSlot2(int middayPauzeSlot2) {
+        this.middayPauzeSlot2 = middayPauzeSlot2;
     }
 
     @Override

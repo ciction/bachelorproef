@@ -156,3 +156,56 @@ end
 
 
 
+
+//// dependenicies via dependency class almost
+//// oude versie werkte halv via een dependeny binnen het course object (ondertussen een dependency object aangemaakt)
+//// memberOf !!!
+//rule "dependenicies via dependency class"
+//    when
+//     $course: Course()
+//     $courseDependencies: CourseDependency( dependentCourse == $course.code);
+//     $dependentLecture: Lecture( course == $course, $dependentLecturetimeslotIndex: timeslotIndex,  period != null)
+//
+//      $collected: ArrayList()
+//           from collect( Lecture( course.code memberOf $courseDependencies.dependencies , period < $dependentLecture.period, period != null ));
+//    then
+//    String result = "";
+//     for (Object obj : $collected) {
+//              Lecture lecture = (Lecture)obj;
+//              result += (lecture.getLabel() + " ");
+//          }
+//    System.out.println(result);
+//
+//     end
+
+
+//// "Dependency courses not before Dependent course"
+//// oude versie werkte halv via een dependeny binnen het course object (ondertussen een dependency object aangemaakt)
+//rule "Dependency courses not before Dependent course"
+//     when
+//          $dependentCourse : Course( code == "ABAP_Objects", $courseDependencies: courseDependencies )
+//          $dependentLecture: Lecture( course == $dependentCourse, $dependentLecturetimeslotIndex: timeslotIndex,  period != null)
+//
+////          $otherCourse: Course(code in ($courseDependencies) )
+//
+//         $collectedDependencyLectures: ArrayList(size < 5)
+////                   from collect( Lecture( course.code == "Java_EE_BIZ", period < $dependentLecture.period, period != null ));
+//                   from collect( Lecture( course.code  in ($courseDependencies), period < $dependentLecture.period, period != null ));
+//
+//      then
+//      System.out.println();
+//      System.out.println("Lecture: " + $dependentLecture + " timeslotIndex: " + $dependentLecturetimeslotIndex);
+//      System.out.println("$courseDependencies = " + $courseDependencies);
+//      Lecture dependentLecture = (Lecture)$dependentLecture;
+//      System.out.println("$dependentLecture = " + $dependentLecture.getPeriod());
+//
+//      System.out.println($collectedDependencyLectures);
+//      for (Object obj : $collectedDependencyLectures) {
+//          Lecture lecture = (Lecture)obj;
+//          System.out.printf(lecture.getLabel() + " ");
+//      }
+////      scoreHolder.addHardConstraintMatch(kcontext, -$collectedDependencyLectures.size());
+//      scoreHolder.addHardConstraintMatch(kcontext, - (5  - $collectedDependencyLectures.size()) );
+//end
+
+

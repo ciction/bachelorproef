@@ -124,6 +124,10 @@ public abstract class AbstractTxtSolutionImporter extends AbstractSolutionImport
             readConstantLine("");
         }
 
+        public String skipInfoLine() throws IOException {
+            return bufferedReader.readLine();
+        }
+
         public void readConstantLine(String constantRegex) throws IOException {
             String line = bufferedReader.readLine();
             if (line == null) {

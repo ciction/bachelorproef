@@ -47,6 +47,9 @@ public class Course extends AbstractPersistable {
     private int minWorkingDaySize;          //  Lectures of the same course should be spread out into a minimum number of days.
     private boolean isPCNeeded = true;
 
+    private int firstPossibleDayIndex;
+    private int lastPossibleDayIndex;
+
     private List<Curriculum> curriculumList;
     private int studentSize;
 
@@ -180,6 +183,23 @@ public class Course extends AbstractPersistable {
         this.courseDependencyCount = courseDependencyCount;
     }
 
+    //EHB rooster Deadline last date
+    public int getLastPossibleDayIndex() {
+        return lastPossibleDayIndex;
+    }
+
+    public void setLastPossibleDayIndex(int lastPossibleDayIndex) {
+        this.lastPossibleDayIndex = lastPossibleDayIndex;
+    }
+
+    //EHB rooster First possible date in planning
+    public int getFirstPossibleDayIndex() {
+        return firstPossibleDayIndex;
+    }
+
+    public void setFirstPossibleDayIndex(int firstPossibleDayIndex) {
+        this.firstPossibleDayIndex = firstPossibleDayIndex;
+    }
 
     @Override
     public String toString() {

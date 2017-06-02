@@ -19,33 +19,33 @@ package org.optaplanner.examples.curriculumcourse.domain;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.optaplanner.examples.common.domain.AbstractPersistable;
 
-@XStreamAlias("Timeslot")
-public class Timeslot extends AbstractPersistable {
+@XStreamAlias("TeacherGroup")
+public class TeacherGroup extends AbstractPersistable {
 
-    public static final String[] TIMES = {"08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"};
+    String groupedTeachers;
+    String individualTeacher;
 
-    private int timeslotIndex;
-
-    public int getTimeslotIndex() {
-        return timeslotIndex;
+    public String getGroupedTeachers() {
+        return groupedTeachers;
     }
 
-    public void setTimeslotIndex(int timeslotIndex) {
-        this.timeslotIndex = timeslotIndex;
+    public void setGroupedTeachers(String groupedTeachers) {
+        this.groupedTeachers = groupedTeachers;
     }
 
-    public String getLabel() {
-        String time = TIMES[timeslotIndex % TIMES.length];
-        if (timeslotIndex > TIMES.length) {
-            return "Timeslot " + timeslotIndex;
-        }
-        return time;
+    public String getIndividualTeacher() {
+        return individualTeacher;
     }
 
+    public void setIndividualTeacher(String individualTeacher) {
+        this.individualTeacher = individualTeacher;
+    }
 
     @Override
     public String toString() {
-        return Integer.toString(timeslotIndex);
+        return "TeacherGroup{" +
+                "groupedTeachers='" + groupedTeachers + '\'' +
+                ", individualTeacher='" + individualTeacher + '\'' +
+                '}';
     }
-
 }

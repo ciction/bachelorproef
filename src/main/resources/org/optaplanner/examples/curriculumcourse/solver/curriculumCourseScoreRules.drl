@@ -37,6 +37,7 @@ import org.optaplanner.examples.curriculumcourse.domain.solver.CourseConflict;
 
 //EHB imports
 import org.optaplanner.examples.curriculumcourse.domain.CourseDependency;
+import org.optaplanner.examples.curriculumcourse.domain.TeacherGroup;
 import  org.optaplanner.examples.curriculumcourse.domain.My_messageClass;
 import java.util.ArrayList
 import java.util.HashMap
@@ -269,11 +270,10 @@ rule "Vakantiedagen"
 end
 
 
-// EHB 6 - Vakantie Uren (over alle vakken heen)
+// EHB  - Vakantie Uren (over alle vakken heen)
 rule "Unavailable Period For All Courses"
     when
         UnavailablePeriodAllCourses($period : period)
-//        Lecture(period == $period)
         Lecture(period == $period)
     then
         scoreHolder.addHardConstraintMatch(kcontext, -10);
@@ -321,6 +321,27 @@ end
 
 
 
+//EHB - Flexibele middagpauze (slots per dag beschreven)
+rule "middagpauze wanneer er 4 of meer lesuren zijn standpunt leerlingen"
+       when
+           $day: Day()
+
+       $dayLecture: ArrayList(size >= 4 )
+               from collect( Lecture(day == $day , day != null ))
+
+     $middayLectures: ArrayList(size >= 2)
+               from collect( Lecture(day == $day , day != null,
+                           period.timeslot.timeslotIndex == $day.middayPauzeSlot1 ||
+                           period.timeslot.timeslotIndex == $day.middayPauzeSlot2,
+                           period != null));
+       then
+       System.out.println("middagpauze wanneer er 4 of meer lesuren zijn standpunt leerlingen");
+           scoreHolder.addHardConstraintMatch(kcontext, -10);
+   end
+
+
+
+
 
 
 
@@ -328,10 +349,10 @@ end
 rule "dependenicies via dependency class"
     when
      $course: Course()
-     $courseDependency: CourseDependency( dependentCourse == $course.code);
+     $courseDependency: CourseDependency( dependentCourse == $course.code, $dependentHours: dependentHours);
      $dependentLecture: Lecture( course == $course, $dependentLecturetimeslotIndex: timeslotIndex,  period != null)
 
-     $collectedDependencyLectures: ArrayList(size < 8)
+     $collectedDependencyLectures: ArrayList(size < $dependentHours)
            from collect( Lecture( course.code == $courseDependency.dependency , period < $dependentLecture.period, period != null ));
     then
         String result = "";
@@ -340,93 +361,75 @@ rule "dependenicies via dependency class"
                   result += (lecture.getLabel() + " ");
               }
         System.out.println(result);
-       scoreHolder.addHardConstraintMatch(kcontext, - (8  - $collectedDependencyLectures.size()) );
+       scoreHolder.addHardConstraintMatch(kcontext, - ($dependentHours  - $collectedDependencyLectures.size()) );
      end
 
 
 
-//
-////dependenicies via dependency class almost
-//// memberOf !!!
-//rule "dependenicies via dependency class"
-//    when
-//     $course: Course()
-//     $courseDependencies: CourseDependency( dependentCourse == $course.code);
-//     $dependentLecture: Lecture( course == $course, $dependentLecturetimeslotIndex: timeslotIndex,  period != null)
-//
-//      $collected: ArrayList()
-//           from collect( Lecture( course.code memberOf $courseDependencies.dependencies , period < $dependentLecture.period, period != null ));
-//    then
-//    String result = "";
-//     for (Object obj : $collected) {
-//              Lecture lecture = (Lecture)obj;
-//              result += (lecture.getLabel() + " ");
-//          }
-//    System.out.println(result);
-//
-//     end
+//EHB - gecombineerde docenten mogen niet samen vallen met individuele docenten"
+// S.Weemaels kan geen les geven tegelijk met  S.Weemaels-J.Wante
+// J.Wante kan geen les geven tegelijk met S.Weemaels-J.Wante
+rule "gecombineerde docenten"
+    when
+       $teacherGroup: TeacherGroup($groupedTeachers: groupedTeachers, $individualTeacher:individualTeacher)
+       $lectureIndividual: Lecture(teacher.code == $individualTeacher, $period : period, period != null)
+       $lectureGrouped: Lecture(teacher.code == $groupedTeachers, period == $period)
 
-
-//
-////dependenicies via dependency class
-//rule "dependenicies via dependency class"
-//    when
-//     $course: Course()
-//     $courseDependencies: CourseDependency( dependentCourse == $course.code);
-//     $dependentLecture: Lecture( course == $course, $dependentLecturetimeslotIndex: timeslotIndex,  period != null)
-//
-//        $depencencyCourseName: String( "sddssg")
-//      $collected: ArrayList()
-//           from collect( Lecture( course.code memberOf $courseDependencies.dependencies , period < $dependentLecture.period, period != null ));
-//    then
-//    String result = "";
-//
-//    List<Lecture> lectures = new ArrayList<Lecture>();
-//     for (Object obj : $collected) {
-//              Lecture lecture = (Lecture)obj;
-//              lectures.add(lecture);
-//              result += (lecture.getLabel() + " ");
-//          }
-//    int occurrences = Collections.frequency(animals, "bat");
-//
-//
-//
-//
-//
-//
-//    System.out.println(result);
-//    System.out.println($depencencyCourseName);
-//
-//     end
+    then
+        scoreHolder.addHardConstraintMatch(kcontext, -1);
+end
 
 
 
-//
-////"Dependency courses not before Dependent course"
-//rule "Dependency courses not before Dependent course"
-//     when
-//          $dependentCourse : Course( code == "ABAP_Objects", $courseDependencies: courseDependencies )
-//          $dependentLecture: Lecture( course == $dependentCourse, $dependentLecturetimeslotIndex: timeslotIndex,  period != null)
-//
-////          $otherCourse: Course(code in ($courseDependencies) )
-//
-//         $collectedDependencyLectures: ArrayList(size < 5)
-////                   from collect( Lecture( course.code == "Java_EE_BIZ", period < $dependentLecture.period, period != null ));
-//                   from collect( Lecture( course.code  in ($courseDependencies), period < $dependentLecture.period, period != null ));
-//
-//      then
-//      System.out.println();
-//      System.out.println("Lecture: " + $dependentLecture + " timeslotIndex: " + $dependentLecturetimeslotIndex);
-//      System.out.println("$courseDependencies = " + $courseDependencies);
-//      Lecture dependentLecture = (Lecture)$dependentLecture;
-//      System.out.println("$dependentLecture = " + $dependentLecture.getPeriod());
-//
-//      System.out.println($collectedDependencyLectures);
-//      for (Object obj : $collectedDependencyLectures) {
-//          Lecture lecture = (Lecture)obj;
-//          System.out.printf(lecture.getLabel() + " ");
-//      }
-////      scoreHolder.addHardConstraintMatch(kcontext, -$collectedDependencyLectures.size());
-//      scoreHolder.addHardConstraintMatch(kcontext, - (5  - $collectedDependencyLectures.size()) );
-//end
+
+//EHB - maximum datum instellen voor een vak                  //nakijken of het niet gaat via een geneste getter zoals Lecture.getday
+// voornamelijk voor eerste of tweede semester te bepalen
+rule "maxium datum voor een les"
+    when
+       //werkend maar niet proper
+//       $lecture: Lecture($course: course, period != null);
+//       eval($lecture.getPeriod().getDay().getDayIndex() > $course.getLastPossibleDayIndex())
+
+       $lecture: Lecture($course: course, period != null,
+        $lecture.day.dayIndex > $course.getLastPossibleDayIndex()
+       );
+
+    then
+        scoreHolder.addHardConstraintMatch(kcontext,-1);
+        scoreHolder.addSoftConstraintMatch(kcontext, -5 *
+        ($lecture.getPeriod().getDay().getDayIndex() - $course.getLastPossibleDayIndex() - 1));
+end
+
+
+//EHB - minimum datum instellen voor een vak
+// voornamelijk voor eerste of tweede semester te bepalen
+rule "minium datum voor een les"
+    when
+       $lecture: Lecture($course: course, period != null,
+        $lecture.day.dayIndex < $course.getFirstPossibleDayIndex()
+       );
+
+    then
+        scoreHolder.addHardConstraintMatch(kcontext,-1);
+        scoreHolder.addSoftConstraintMatch(kcontext, -5 *
+        ($course.getFirstPossibleDayIndex() - $lecture.getPeriod().getDay().getDayIndex()));
+end
+
+
+//EHB - vrij uur voor curriculum voor events
+rule "vrij uur per curriculum voor events"
+     when
+           $curriculum: Curriculum( code == "DigX3_Bizit")
+           $day: Day(dayIndex == 0)
+           $period: Period( day == $day )
+           Lecture(period == $period , $curriculum memberOf curriculumList )
+       then
+       System.out.println("vrij uur per curriculum voor events");
+           scoreHolder.addHardConstraintMatch(kcontext, -10);
+end
+
+
+
+
+
 

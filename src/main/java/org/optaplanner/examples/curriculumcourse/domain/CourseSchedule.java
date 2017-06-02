@@ -42,6 +42,7 @@ public class CourseSchedule extends AbstractPersistable implements Solution<Hard
     private List<Curriculum> curriculumList;
     private List<Course> courseList;
     private List<CourseDependency> courseDependencyList;
+    private List<TeacherGroup> teacherGroups;
     private List<Day> dayList;
     private List<Timeslot> timeslotList;
     private List<Period> periodList;
@@ -95,6 +96,14 @@ public class CourseSchedule extends AbstractPersistable implements Solution<Hard
 
     public void setCourseDependencyList(List<CourseDependency> courseDependencyList) {
         this.courseDependencyList = courseDependencyList;
+    }
+
+    //EHB rooster
+    public List<TeacherGroup> getTeacherGroups() {
+        return teacherGroups;
+    }
+    public void setTeacherGroups(List<TeacherGroup> teacherGroups) {
+        this.teacherGroups = teacherGroups;
     }
 
     public List<Day> getDayList() {
@@ -186,6 +195,7 @@ public class CourseSchedule extends AbstractPersistable implements Solution<Hard
     public Collection<? extends Object> getProblemFacts() {
         List<Object> facts = new ArrayList<Object>();
         facts.addAll(teacherList);
+        facts.addAll(teacherGroups);
         facts.addAll(curriculumList);
         facts.addAll(courseList);
         facts.addAll(courseDependencyList);

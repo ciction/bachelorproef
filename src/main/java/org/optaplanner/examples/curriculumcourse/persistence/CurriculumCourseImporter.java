@@ -62,13 +62,13 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
         //int wednessDayTimeSlots = 4;
         public  void setWeekConfiguration(){
-            setWEEKDAYPeriods(MONDAY,8);
-            setWEEKDAYPeriods(TUESDAY,8);
-            setWEEKDAYPeriods(WEDNESDAY,8);
-            setWEEKDAYPeriods(THURSDAY,8);
-            setWEEKDAYPeriods(FRIDAY,8);
-            setWEEKDAYPeriods(SATURDAY,0);
-            setWEEKDAYPeriods(SUNDAY,0);
+            setWEEKDAYPeriods(MONDAY,9);
+            setWEEKDAYPeriods(TUESDAY,9);
+            setWEEKDAYPeriods(WEDNESDAY,9);
+            setWEEKDAYPeriods(THURSDAY,9);
+            setWEEKDAYPeriods(FRIDAY,9);
+            setWEEKDAYPeriods(SATURDAY,9);
+            setWEEKDAYPeriods(SUNDAY,9);
         }
 
 
@@ -117,7 +117,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             //CURRICULA:
             readCurriculumList( schedule, courseMap, curriculumListSize);
 
-            //UNAVAILABILITY_CONSTRAINTS:
+            //UNAVAILABILITY_COURSE:
             readUnavailablePeriodPenaltyList( schedule, courseMap, periodMap, unavailablePeriodPenaltyListSize);
 
             //UNAVAILABLE_HOURS_ALL:
@@ -139,19 +139,47 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             CourseDependency courseDependency = new CourseDependency();
             courseDependency.setDependentCourse("ABAP_Objects");
             courseDependency.setDependency("Java_EE_BIZ");
-            courseDependency.setDependentHours(5);
+            courseDependency.setDependentHours(2);
             CourseDependenciesList.add(courseDependency);
 
 
             courseDependency = new CourseDependency();
             courseDependency.setDependentCourse("ABAP_Objects");
             courseDependency.setDependency("Networking");
-            courseDependency.setDependentHours(5);
+            courseDependency.setDependentHours(1);
             CourseDependenciesList.add(courseDependency);
 
             schedule.setCourseDependencyList(CourseDependenciesList);
-
+            //todo end
             //-----------------------
+
+            //todo afwerken pauze slot
+            //
+            //
+            //
+            //todo end
+            //-----------------------
+
+
+            //todo afwerken        TeacherGroup
+            //-----------------------
+
+            List<TeacherGroup> teacherGroupList = new ArrayList<TeacherGroup>();
+
+            TeacherGroup teacherGroup = new TeacherGroup();
+            teacherGroup.setGroupedTeachers("S.Weemaels_K.V.Ryckegem");
+            teacherGroup.setIndividualTeacher("S.Weemaels");
+            teacherGroupList.add(teacherGroup);
+
+            teacherGroup = new TeacherGroup();
+            teacherGroup.setGroupedTeachers("S.Weemaels_K.V.Ryckegem");
+            teacherGroup.setIndividualTeacher("K.V.Ryckegem");
+            teacherGroupList.add(teacherGroup);
+
+            schedule.setTeacherGroups(teacherGroupList);
+            //todo end            TeacherGroup
+            //-----------------------
+
 
             createLectureList(schedule);
 
@@ -237,6 +265,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             //1 read title
             //2 read each line
             readConstantLine("COURSES:");
+            skipInfoLine();
             for (int i = 0; i < courseListSize; i++) {                                   //Courses: 3 --> 3 times forloop
                 Course course = new Course();
                 course.setId((long) i);
@@ -253,28 +282,59 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                             + ") is expected to contain at least " + minimumCourseParameters + " tokens.");
                 }
 
-                course.setCode(lineTokens[0]);                                          //naam van het vak + type
+                int nextToken = 0;
+                course.setCode(lineTokens[nextToken++]);                                                //token 0
+                // naam van het vak + type
                 // op basis van  de code bepalen we of het om een Werkcollege of Hoorcollege gaat
                 // ==> "_WK" zijn werkcollegdes (blokken van 3u) hoorcolleges zijn blokken van 2u
                 // om blokken van bijvoorbeeld 1u te hebben moet het aantal uur per blok ingegeven worden na "setcode"
 
-                course.setTeacher(findOrCreateTeacher(teacherMap, lineTokens[1]));      //naam van de prof
-                course.setLectureSize(Integer.parseInt(lineTokens[2]));                 //lecuture size ? --> hoeveel keer het voorkomt ?
-                course.setMinWorkingDaySize(Integer.parseInt(lineTokens[3]));           //MinWorkingDaySize --> // Lectures of the same course should be spread out into a minimum number of days.
+                course.setTeacher(findOrCreateTeacher(teacherMap, lineTokens[nextToken++])); //token 1  aam van de prof
+                course.setLectureSize(Integer.parseInt(lineTokens[nextToken++]));            //token 2  lecuture size ? --> hoeveel keer het voorkomt ?
+                course.setMinWorkingDaySize(Integer.parseInt(lineTokens[nextToken++]));      //token 3  MinWorkingDaySize --> // Lectures of the same course should be spread out into a minimum number of days.
                 course.setCurriculumList(new ArrayList<Curriculum>());
-                course.setStudentSize(Integer.parseInt(lineTokens[4]));                 //setStudentSize aantal studenten voor dit vak
+                course.setStudentSize(Integer.parseInt(lineTokens[nextToken++]));            //token 4  setStudentSize aantal studenten voor dit vak
 
-                //pc
-                if(lineTokens.length >= 6){
-                    course.setPCNeeded(Boolean.parseBoolean(lineTokens[5]));                 //check of er computers nodig zijn in het lokaal voor dit vak
+
+                //minmimum date //token 5
+                if(lineTokens.length >= (nextToken + 1)){
+                    DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+                    String target = (lineTokens[nextToken++]);
+                    int dayIndex = -1;
+                    if(! target.equals("/")){
+                        dayIndex  = getDayIndexFromDateString(target,df);
+                    }
+
+                    course.setFirstPossibleDayIndex(dayIndex);
+                }
+
+                //deadline //token 6
+                if(lineTokens.length >= (nextToken + 1)){
+                    DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+                    String target = (lineTokens[nextToken++]);
+                    int dayIndex = Integer.MAX_VALUE;
+                    if(! target.equals("/")){
+                        dayIndex  = getDayIndexFromDateString(target,df);
+                    }
+
+                    course.setLastPossibleDayIndex(dayIndex);
+                }
+
+                //pc //token 7
+                if(lineTokens.length >= (nextToken + 1)){
+                    course.setPCNeeded(Boolean.parseBoolean(lineTokens[nextToken++]));                 //check of er computers nodig zijn in het lokaal voor dit vak
                 }
                 else{
                     course.setPCNeeded(false);
                 }
 
-                //uren per blok
-                if(lineTokens.length >= 7){
-                    course.setUrenPerDag(Integer.parseInt(lineTokens[6]));
+
+
+                        //setStudentSize aantal studenten voor dit vak
+
+                //uren per blok //token 8
+                if(lineTokens.length >= (nextToken + 1)){
+                    course.setUrenPerDag(Integer.parseInt(lineTokens[nextToken++]));
                 }
 
 
@@ -309,6 +369,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                 throws IOException {
             readEmptyLine();
             readConstantLine("ROOMS:");
+            skipInfoLine();
             List<Room> roomList = new ArrayList<Room>(roomListSize);
             for (int i = 0; i < roomListSize; i++) {
                 Room room = new Room();
@@ -511,6 +572,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                                         Map<String, Course> courseMap, int curriculumListSize) throws IOException {
             readEmptyLine();
             readConstantLine("CURRICULA:");
+            skipInfoLine();
             List<Curriculum> curriculumList = new ArrayList<Curriculum>(curriculumListSize);
             for (int i = 0; i < curriculumListSize; i++) {
                 Curriculum curriculum = new Curriculum();
@@ -543,19 +605,20 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             schedule.setCurriculumList(curriculumList);
         }
 
-        //UNAVAILABILITY_CONSTRAINTS:
+        //UNAVAILABILITY_COURSE:
         private void readUnavailablePeriodPenaltyList(CourseSchedule schedule, Map<String, Course> courseMap,
                                                       Map<List<Integer>, Period> periodMap, int unavailablePeriodPenaltyListSize)
                 throws IOException {
             readEmptyLine();
-            readConstantLine("UNAVAILABILITY_CONSTRAINTS:");
+            readConstantLine("UNAVAILABILITY_COURSE:");
+            skipInfoLine();
             List<UnavailablePeriodPenalty> penaltyList = new ArrayList<UnavailablePeriodPenalty>(
                     unavailablePeriodPenaltyListSize);
             for (int i = 0; i < unavailablePeriodPenaltyListSize; i++) {
                 UnavailablePeriodPenalty penalty = new UnavailablePeriodPenalty();
                 penalty.setId((long) i);
 
-                // Unavailability_Constraints: <CourseID> <Day> <Day_Period>
+                // UNAVAILABILITY_COURSE: <CourseID> <Day> <Day_Period>
                 String line = bufferedReader.readLine();
                 String[] lineTokens = splitBySpacesOrTabs(line, 3);
 
@@ -591,6 +654,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
             readEmptyLine();
             readConstantLine("UNAVAILABLE_HOURS_ALL:");
+            skipInfoLine();
             List<UnavailablePeriodAllCourses> UnavailablePeriodAllCoursesList = new ArrayList<UnavailablePeriodAllCourses>(unavailablePeriodAllListSize);
 
             for (int i = 0; i < unavailablePeriodAllListSize; i++) {
@@ -632,6 +696,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
             readEmptyLine();
             readConstantLine("UNAVAILABLE_DAYS_ALL:");
+            skipInfoLine();
             List<UnavailableDay> unavailableDayList = new ArrayList<UnavailableDay>(UnavailableDayListSize);
 
             for (int i = 0; i < UnavailableDayListSize; i++) {
@@ -680,6 +745,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                 throws IOException {
             readEmptyLine();
             readConstantLine("DEPENDENCIES:");
+            skipInfoLine();
 //            List<UnavailablePeriodPenalty> penaltyList = new ArrayList<UnavailablePeriodPenalty>(
 //                    unavailablePeriodPenaltyListSize);
             for (int i = 0; i < dependentCourseSize; i++) {
