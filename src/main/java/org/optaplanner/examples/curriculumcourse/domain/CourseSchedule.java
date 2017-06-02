@@ -51,6 +51,7 @@ public class CourseSchedule extends AbstractPersistable implements Solution<Hard
     private List<UnavailableDay> unavailableDayList;
     private List<UnavailablePeriodAllCourses> unavailablePeriodAllCoursesList;
     private List<UnavailablePeriodPenalty> unavailablePeriodPenaltyList;
+    private List<UnavailableCurriculumDay> UnavailableCurriculumDaysList;
 
     private List<Lecture> lectureList;
 
@@ -148,7 +149,16 @@ public class CourseSchedule extends AbstractPersistable implements Solution<Hard
         this.unavailablePeriodPenaltyList = unavailablePeriodPenaltyList;
     }
 
-    //custom
+    //EHB Rooster
+    public List<UnavailableCurriculumDay> getUnavailableCurriculumDaysList() {
+        return UnavailableCurriculumDaysList;
+    }
+
+    public void setUnavailableCurriculumDaysList(List<UnavailableCurriculumDay> unavailableCurriculumDaysList) {
+        UnavailableCurriculumDaysList = unavailableCurriculumDaysList;
+    }
+
+    //EHB Rooster
     //UnavailableDay
     public List<UnavailableDay> getUnavailableDayList() {
         return unavailableDayList;
@@ -205,6 +215,7 @@ public class CourseSchedule extends AbstractPersistable implements Solution<Hard
         facts.addAll(roomList);
         facts.addAll(unavailablePeriodAllCoursesList);
         facts.addAll(unavailablePeriodPenaltyList);
+        facts.addAll(UnavailableCurriculumDaysList);
         facts.addAll(unavailableDayList);
 
         facts.addAll(precalculateCourseConflictList());

@@ -56,9 +56,9 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
     }
 
     public static class CurriculumCourseInputBuilder extends TxtInputBuilder {
+//
+    private Map<Pair<Date, Integer>, Period> _periodMapDateBased = new HashMap<Pair<Date, Integer>, Period>();
 
-
-        private Map<Pair<Date, Integer>, Period> _periodMapDateBased = new HashMap<Pair<Date, Integer>, Period>();
 
         //int wednessDayTimeSlots = 4;
         public  void setWeekConfiguration(){
@@ -94,8 +94,10 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             int timeslotListSize = readIntegerValue("Periods_per_day:");
             // Curricula: 2
             int curriculumListSize = readIntegerValue("Curricula:");
-            // Constraints: 8
-            int unavailablePeriodPenaltyListSize = readIntegerValue("Constraints:");
+            // unavailable_courses: 8
+            int unavailable_coursesListSize = readIntegerValue("unavailable_courses:");
+           //unavailable_curricula
+            int unavailable_curriculaListSize = readIntegerValue("unavailable_curricula:");
             // unavailable_hours_all: 8
             int unavailablePeriodAllListSize = readIntegerValue("unavailable_hours_all:");
             // unavailable_days_all: 8
@@ -118,7 +120,11 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             readCurriculumList( schedule, courseMap, curriculumListSize);
 
             //UNAVAILABILITY_COURSE:
-            readUnavailablePeriodPenaltyList( schedule, courseMap, periodMap, unavailablePeriodPenaltyListSize);
+            readUnavailablePeriodPenaltyList( schedule, courseMap, periodMap, unavailable_coursesListSize);
+
+            //UNAVAILABILITY_CURRICULUM:
+            readUnavailableCurriculumPenaltyList( schedule, courseMap, periodMap, unavailable_curriculaListSize);
+
 
             //UNAVAILABLE_HOURS_ALL:
             readUnavailablePeriodsALLList( schedule, courseMap, periodMap, unavailablePeriodAllListSize);
@@ -156,13 +162,6 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             //todo afwerken pauze slot
             //
             //
-            //
-            //todo end
-            //-----------------------
-
-
-            //todo afwerken        TeacherGroup
-            //-----------------------
 
             List<TeacherGroup> teacherGroupList = new ArrayList<TeacherGroup>();
 
@@ -176,6 +175,13 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             teacherGroup.setIndividualTeacher("K.V.Ryckegem");
             teacherGroupList.add(teacherGroup);
 
+            //
+            //todo end
+            //-----------------------
+
+
+            //todo afwerken        TeacherGroup
+            //-----------------------
             schedule.setTeacherGroups(teacherGroupList);
             //todo end            TeacherGroup
             //-----------------------
@@ -517,6 +523,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                     periodList.add(period);
                     periodMap.put(Arrays.asList(i, j), period);
 
+                    //niet meer nodig om op date te zoeken ==> dates worden omgezet naar indexen
                     Pair<Date,Integer> datePeriod = new Pair(day.getDate(),j);
                     periodMapDateBased.put(datePeriod, period);
 
@@ -647,6 +654,56 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
         }
 
+        //UNAVAILABILITY_CURRICULUM:
+        private void readUnavailableCurriculumPenaltyList(CourseSchedule schedule, Map<String, Course> courseMap,
+                                             Map<List<Integer>, Period> periodMap, int unavailable_curriculaListSize)throws IOException {
+            readEmptyLine();
+            readConstantLine("UNAVAILABILITY_CURRICULUM:");
+            skipInfoLine();
+            List<UnavailableCurriculumDay> UnavailableCurriculumDayList = new ArrayList<UnavailableCurriculumDay>(unavailable_curriculaListSize);
+            for (int i = 0; i < unavailable_curriculaListSize; i++) {
+                UnavailableCurriculumDay unavailableCurriculumDay = new UnavailableCurriculumDay();
+                unavailableCurriculumDay.setId((long) i);
+
+                // UNAVAILABILITY_CURRICULUM: <CurriculumID> <Day(date)>
+                String line = bufferedReader.readLine();
+                String[] lineTokens = splitBySpacesOrTabs(line);
+
+                unavailableCurriculumDay.setCurriculumName((lineTokens[0]));
+
+                DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+                String target = (lineTokens[1]);
+                int dayIndex = getDayIndexFromDateString(target, df);
+
+                //optional period index
+                int timeslotIndex = -1;
+                if (lineTokens.length == (3)) {
+                    timeslotIndex = Integer.parseInt(lineTokens[2]);
+                    //user cannot manualy set a negative value (-1 as default value works, but is used to ignore periods)
+                    if(timeslotIndex < 0 )
+                        GenerateError("Read line (" + line + ") uses an negative period("
+                              + dayIndex + " " + timeslotIndex + ").");
+
+                    try {
+                        Period period = periodMap.get(Arrays.asList(dayIndex, timeslotIndex));
+                        if (period == null) {
+                            GenerateError("Read line (" + line + ") uses an unexisting period("
+                                    + dayIndex + " " + timeslotIndex + ").");
+                        }
+                    } catch (Exception e) {
+
+                    }
+                }
+
+                unavailableCurriculumDay.setDayIndex(dayIndex);
+                unavailableCurriculumDay.setTimeslotIndex(timeslotIndex);
+                UnavailableCurriculumDayList.add(unavailableCurriculumDay);
+            }
+
+            schedule.setUnavailableCurriculumDaysList(UnavailableCurriculumDayList);
+
+        }
+
 
         private void readUnavailablePeriodsALLList(CourseSchedule schedule, Map<String, Course> courseMap,
                                       Map<List<Integer>, Period> periodMap, int unavailablePeriodAllListSize)
@@ -677,7 +734,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                 Period period = periodMap.get(Arrays.asList(dayIndex, timeslotIndex));
 
 
-                
+
                 unavailablePeriodAll.setPeriod(period);
 
                 UnavailablePeriodAllCoursesList.add(unavailablePeriodAll);

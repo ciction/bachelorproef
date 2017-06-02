@@ -1,10 +1,11 @@
 Name: EHB
 Courses: 5
 Rooms: 2
-Days: 6
+Days: 7
 Periods_per_day: 9
 Curricula: 2
-Constraints: 2
+unavailable_courses: 2
+unavailable_curricula: 3
 unavailable_hours_all: 2
 unavailable_days_all: 1
 DependentCourses: 1
@@ -12,8 +13,8 @@ DependentCourses: 1
 COURSES:
 code            teacher                 count   minDays   students  minimumDate deadline    needPc(optional)  maxHoursPerDay(optional but with pc)
 ABAP_Objects    S.Weemaels              10      1         6         03/03/2017  /           true    4
-Java_EE_NW      K.V.Ryckegem            12      3         3         /           03/03/2017  false
-Java_EE_BIZ     K.V.Ryckegem            5       3         3         /           03/03/2017  false
+Java_EE_NW      K.V.Ryckegem            12      3         3         /           04/03/2017  false
+Java_EE_BIZ     K.V.Ryckegem            5       3         3         /           04/03/2017  false
 Networking      B.Drabbé                12      3         6         /           /           false
 GW_ABAP_JAVA    S.Weemaels_K.V.Ryckegem 6       3         6         /           /           false
 
@@ -24,13 +25,19 @@ B	    6           5
 
 CURRICULA:
 CurriculumID   #Courses     AllMemberCourses(n)
-DigX3_Bizit    3            ABAP_Objects Java_EE_BIZ Networking
-DigX3_Network  2            Java_EE_NW  Networking
+DigX3_Bizit    4            ABAP_Objects Java_EE_BIZ Networking GW_ABAP_JAVA
+DigX3_Network  3            Java_EE_NW  Networking GW_ABAP_JAVA
 
 UNAVAILABILITY_COURSE:
 CourseID        Day(date)    Period
 Java_EE_NW      01/03/2017   0
 Java_EE_NW      01/03/2017   1
+
+UNAVAILABILITY_CURRICULUM:
+CurriculumID        Day(date)   timeslot(optional)
+DigX3_Bizit         01/03/2017  0
+DigX3_Bizit         01/03/2017  1
+DigX3_Bizit         01/03/2017  3
 
 UNAVAILABLE_HOURS_ALL:
 Day(date)    Period

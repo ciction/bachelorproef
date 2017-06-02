@@ -38,6 +38,8 @@ import org.optaplanner.examples.curriculumcourse.domain.solver.CourseConflict;
 //EHB imports
 import org.optaplanner.examples.curriculumcourse.domain.CourseDependency;
 import org.optaplanner.examples.curriculumcourse.domain.TeacherGroup;
+import org.optaplanner.examples.curriculumcourse.domain.UnavailableCurriculumDay;
+
 import  org.optaplanner.examples.curriculumcourse.domain.My_messageClass;
 import java.util.ArrayList
 import java.util.HashMap
@@ -417,19 +419,43 @@ end
 
 
 //EHB - vrij uur voor curriculum voor events
-rule "vrij uur per curriculum voor events"
+//rule "vrij uur per curriculum voor events"
+//     when
+//           $curriculum: Curriculum( code == "DigX3_Bizit")
+//           $day: Day(dayIndex == 0)
+//           $period: Period( day == $day )
+//           Lecture(period == $period , $curriculum memberOf curriculumList )
+//       then
+//       System.out.println("vrij uur per curriculum voor events");
+//           scoreHolder.addHardConstraintMatch(kcontext, -10);
+//end
+
+
+
+//EHB - vrije dag per curriculum voor events
+rule "vrije dag per curriculum voor events"
      when
-           $curriculum: Curriculum( code == "DigX3_Bizit")
-           $day: Day(dayIndex == 0)
+           $unavailableCurriculumDay: UnavailableCurriculumDay($curriculumName: curriculumName, $dayIndex: dayIndex, timeslotIndex == -1 )
+           $curriculum: Curriculum( code ==$curriculumName)
+           $day: Day(dayIndex == $dayIndex)
            $period: Period( day == $day )
+           Lecture(period == $period , $curriculum memberOf curriculumList )
+       then
+           scoreHolder.addHardConstraintMatch(kcontext, -10);
+end
+
+
+//EHB - vrij uur voor curriculum voor events
+rule "vrij uur voor curriculum voor events"
+     when
+           $unavailableCurriculumDay: UnavailableCurriculumDay($curriculumName: curriculumName, $dayIndex: dayIndex, $timeslotIndex: timeslotIndex, timeslotIndex >= 0 )
+           $curriculum: Curriculum( code ==$curriculumName)
+           $day: Day(dayIndex == $dayIndex)
+           $period: Period( day == $day, timeslot.timeslotIndex == $timeslotIndex )
            Lecture(period == $period , $curriculum memberOf curriculumList )
        then
        System.out.println("vrij uur per curriculum voor events");
            scoreHolder.addHardConstraintMatch(kcontext, -10);
 end
-
-
-
-
 
 
