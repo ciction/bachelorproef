@@ -86,6 +86,8 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             schedule.setName(readStringValue("Name:"));
             // Courses: 4
             int courseListSize = readIntegerValue("Courses:");
+            // TeacherGroupCount: 1
+            int teacherGroupCount = readIntegerValue("TeacherGroupCount:");
             // Rooms: 2
             int roomListSize = readIntegerValue("Rooms:");
             // Days: 5
@@ -108,6 +110,10 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             //COURSES:
             //save the courses in a map voor hergebruik
             Map<String, Course> courseMap = readCourseListAndTeacherList( schedule, courseListSize);
+
+            //TEACHER_GROUPS:
+            readTeacherGroups(schedule, teacherGroupCount);
+
 
             //ROOMS:
             readRoomList( schedule, roomListSize);
@@ -163,28 +169,6 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             //
             //
 
-            List<TeacherGroup> teacherGroupList = new ArrayList<TeacherGroup>();
-
-            TeacherGroup teacherGroup = new TeacherGroup();
-            teacherGroup.setGroupedTeachers("S.Weemaels_K.V.Ryckegem");
-            teacherGroup.setIndividualTeacher("S.Weemaels");
-            teacherGroupList.add(teacherGroup);
-
-            teacherGroup = new TeacherGroup();
-            teacherGroup.setGroupedTeachers("S.Weemaels_K.V.Ryckegem");
-            teacherGroup.setIndividualTeacher("K.V.Ryckegem");
-            teacherGroupList.add(teacherGroup);
-
-            //
-            //todo end
-            //-----------------------
-
-
-            //todo afwerken        TeacherGroup
-            //-----------------------
-            schedule.setTeacherGroups(teacherGroupList);
-            //todo end            TeacherGroup
-            //-----------------------
 
 
             createLectureList(schedule);
@@ -370,6 +354,34 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             }
             return teacher;
         }
+
+        //TEACHER_GROUPS:
+        private void readTeacherGroups(CourseSchedule schedule, int teacherGroupCount)
+                throws IOException {
+            readEmptyLine();
+            readConstantLine("TEACHER_GROUPS:");
+            skipInfoLine();
+
+            TeacherGroup teacherGroup;
+            List<TeacherGroup> teacherGroupList = new ArrayList<TeacherGroup>(teacherGroupCount);
+            for (int i = 0; i < teacherGroupCount; i++) {
+
+
+                // TEACHER_GROUPS: <groupName> <teachers(n)>
+                String line = bufferedReader.readLine();
+                String[] lineTokens = splitBySpacesOrTabs(line);
+
+                for (int j = 1; j < lineTokens.length; j++) {
+                    teacherGroup = new TeacherGroup();
+                    teacherGroup.setId((long) (i+1)*j-1);
+                    teacherGroup.setGroupedTeachers(lineTokens[0]);
+                    teacherGroup.setIndividualTeacher(lineTokens[j]);
+                    teacherGroupList.add(teacherGroup);
+                }
+            }
+                schedule.setTeacherGroups(teacherGroupList);
+        }
+
 
         private void readRoomList(CourseSchedule schedule, int roomListSize)
                 throws IOException {

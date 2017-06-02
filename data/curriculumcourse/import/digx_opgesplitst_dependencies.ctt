@@ -1,5 +1,6 @@
 Name: EHB
 Courses: 5
+TeacherGroupCount: 1
 Rooms: 2
 Days: 7
 Periods_per_day: 9
@@ -17,6 +18,10 @@ Java_EE_NW      K.V.Ryckegem            12      3         3         /           
 Java_EE_BIZ     K.V.Ryckegem            5       3         3         /           04/03/2017  false
 Networking      B.Drabbé                12      3         6         /           /           false
 GW_ABAP_JAVA    S.Weemaels_K.V.Ryckegem 6       3         6         /           /           false
+
+TEACHER_GROUPS:
+groupName                   teachers(n)
+S.Weemaels_K.V.Ryckegem     S.Weemaels  K.V.Ryckegem
 
 ROOMS:
 RoomID  Capacity    PCcount

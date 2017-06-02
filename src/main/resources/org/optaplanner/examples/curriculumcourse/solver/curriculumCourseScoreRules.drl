@@ -418,19 +418,6 @@ rule "minium datum voor een les"
 end
 
 
-//EHB - vrij uur voor curriculum voor events
-//rule "vrij uur per curriculum voor events"
-//     when
-//           $curriculum: Curriculum( code == "DigX3_Bizit")
-//           $day: Day(dayIndex == 0)
-//           $period: Period( day == $day )
-//           Lecture(period == $period , $curriculum memberOf curriculumList )
-//       then
-//       System.out.println("vrij uur per curriculum voor events");
-//           scoreHolder.addHardConstraintMatch(kcontext, -10);
-//end
-
-
 
 //EHB - vrije dag per curriculum voor events
 rule "vrije dag per curriculum voor events"
