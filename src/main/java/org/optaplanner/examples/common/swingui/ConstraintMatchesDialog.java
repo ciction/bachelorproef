@@ -121,6 +121,13 @@ public class ConstraintMatchesDialog extends JDialog {
         StringBuilder text = new StringBuilder(constraintMatchSet.size() * 80);
         for (ConstraintMatch constraintMatch : constraintMatchSet) {
             text.append(constraintMatch.toString()).append("\n");
+
+            //todo optioneel zoeken naar een manier om de score duidelijker weer te geven
+//            text.append(constraintMatch.getJustificationList().get(0).toString());
+//            Object[] objectArray = constraintMatch.getJustificationList().get(0);
+
+            text.append("\n");
+
         }
         return text.toString();
     }

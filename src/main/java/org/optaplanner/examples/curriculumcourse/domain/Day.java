@@ -37,6 +37,7 @@ public class Day extends AbstractPersistable {
     private int middayPauzeSlot2 = 5;
 
 
+
     private static void init(){
         if(SchedulerSettings.language.equals(SchedulerSettings.Language.Dutch)){
             WEEKDAYS = new String[]{"Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"};
@@ -50,6 +51,7 @@ public class Day extends AbstractPersistable {
 
     private int dayIndex;
     private Date date;
+    private boolean weekend = false;
     private String dateString;
 
     private List<Period> periodList;
@@ -67,6 +69,15 @@ public class Day extends AbstractPersistable {
         this.dateString = dateFormat.format(this.date);
         if(!isInitialized){
             init();
+        }
+
+        Calendar calDate = Calendar.getInstance();
+        calDate.setTime(date);
+        if (calDate.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY  ||
+                calDate.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY ){
+            setWeekend(true);
+        }else {
+            setWeekend(false);
         }
     }
 
@@ -94,6 +105,7 @@ public class Day extends AbstractPersistable {
 
     public void setDate(Date date) {
         this.date = date;
+
     }
 
     public int getMiddayPauzeSlot1() {
@@ -117,4 +129,11 @@ public class Day extends AbstractPersistable {
         return Integer.toString(dayIndex);
     }
 
+    public boolean getWeekend() {
+        return weekend;
+    }
+
+    public void setWeekend(boolean weekend) {
+        this.weekend = weekend;
+    }
 }

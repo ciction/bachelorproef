@@ -20,6 +20,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -32,7 +34,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
+import javax.swing.border.LineBorder;
 
+import javafx.scene.input.MouseButton;
 import org.optaplanner.swing.impl.SwingUtils;
 import org.optaplanner.core.api.domain.solution.Solution;
 import org.optaplanner.examples.common.swingui.CommonIcons;
@@ -221,14 +225,52 @@ public class CurriculumCoursePanel extends SolutionPanel {
         return headerPanel;
     }
 
-    private JButton createButton(Lecture lecture, Color color) {
-        JButton button = SwingUtils.makeSmallButton(new JButton(new LectureAction(lecture)));
-        button.setBackground(color);
+
+    //hier worden de buttons aangemaakt, elke course is eigenlijk een button
+//    private JButton createButton(Lecture lecture, Color color) {
+//
+//        JButton button = SwingUtils.makeSmallButton(new JButton(new LectureAction(lecture)));
+//        button.setBackground(color);
+//        if (lecture.isLocked()) {
+//            button.setIcon(CommonIcons.LOCKED_ICON);
+//        }
+//        return button;
+//    }
+
+
+    private JLabel createButton(final Lecture lecture, Color color) {
+
+        JLabel label = new JLabel(lecture.getLabel(), SwingConstants.CENTER);
+        LineBorder line = new LineBorder(color, 5, true); // color, thickness, rounded
+        label.setBorder(line);
+
+        final LectureAction lectureAction = new LectureAction(lecture);
+        label.setBackground(color);
+        label.setOpaque(true);
+        label.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (solutionBusiness.isSolving()) {
+                    JOptionPane.showMessageDialog(null,"No actions possible on Lectures because the solver is solving.");
+                }
+                else{
+                    if(e.getButton() == MouseButton.PRIMARY.ordinal()){
+                        lectureAction.actionPerformed(null);
+                    }
+                    else if(e.getButton() == MouseButton.SECONDARY.ordinal()){
+                        lecture.setLocked(!lecture.isLocked());
+                        solverAndPersistenceFrame.resetScreen();
+                    }
+                }
+
+            }
+        });
         if (lecture.isLocked()) {
-            button.setIcon(CommonIcons.LOCKED_ICON);
+            label.setIcon(CommonIcons.LOCKED_ICON);
         }
-        return button;
+        return label;
     }
+
 
     private class LectureAction extends AbstractAction {
 

@@ -45,7 +45,7 @@ public class Course extends AbstractPersistable {
     private CourseType courseType;
     private int LectureTime;
     private int minWorkingDaySize;          //  Lectures of the same course should be spread out into a minimum number of days.
-    private boolean isPCNeeded = true;
+    private boolean isPCNeeded = false;
 
     private int firstPossibleDayIndex;
     private int lastPossibleDayIndex;

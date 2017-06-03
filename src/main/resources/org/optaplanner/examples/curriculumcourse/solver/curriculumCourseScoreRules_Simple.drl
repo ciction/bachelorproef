@@ -160,7 +160,7 @@ end
 
 // RoomStability: All lectures of a course should be given in the same room.
 // Each distinct room used for the lectures of a course, but the first, counts as 1 point of penalty.
-// Soft 4
+// Soft 3
 rule "roomStability"
     when
         $course : Course()
@@ -181,26 +181,28 @@ end
 // ############################################################################
 
 
-
 //geen Werkcolleges in de voormiddag
 //--------------------------------------------------------------------------
 
-// EHB 1 - Werkcolleges best niet in de voormiddag
+// EHB 1
+//geen Werkcolleges in de voormiddag
 rule "Geen werkColleges in de voormiddag"
     when
         // code = naam van het vak
-        $course : Course(courseType == courseType.Werkcollege)
+        $course : Course(courseType == CourseType.Werkcollege)
         //{"08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"};
         //eerste 4 lesuren geen abap
         Lecture(course == $course, timeslotIndex < 4 )
     then
-        scoreHolder.addSoftConstraintMatch(kcontext, -2);
+        scoreHolder.addSoftConstraintMatch(kcontext, -1);
 end
 
+
+// Voldoende PC's voorzien in lokalen
 //--------------------------------------------------------------------------
-// Computers
-//--------------------------------------------------------------------------
-// EHB 2 - PC SOFT  - Voldoende PC's voorzien in lokalen
+
+
+// EHB 2 - PC SOFT
 //aantal pc's moet voldoen (soft rule --> 1 punt per pc)
 //     - er is een pc nodig voor het vak - kijk hoeveel pc's er zijn  ==> $pcCount
 //     - Lectures in deze ruimte mogen met $studentSize (course) niet over $pcCount gaan
@@ -214,6 +216,8 @@ rule "Room Has Enough PCs"
       scoreHolder.addSoftConstraintMatch(kcontext, ($pcCount - $studentSize));
 end
 
+
+
 // EHB 3 - PC HARD
 // Geen pc's in het lokaal terwijl ze nodig zijn (deling door nul vermijden )
 rule "0 PC's available"
@@ -224,6 +228,7 @@ rule "0 PC's available"
       then
           scoreHolder.addHardConstraintMatch(kcontext, -10);
 end
+
 
 // EHB 4 - PC HARD  HARD
 //    aantal pc's moet voldoen   (werkt niet bij deling door 0 pc's)
@@ -247,15 +252,13 @@ rule "Moren Then 30 Percent PC's Missing"
 //        System.out.println("percent = " + percent);
 //        System.out.println("\t negativeScore = " + negativeScore);
     end
+
+
+
+// vakantiedagen of uren (over alle vakken heen)
 //--------------------------------------------------------------------------
 
 
-
-
-
-//--------------------------------------------------------------------------
-// vakantiedagen en uren (over alle vakken heen)
-//--------------------------------------------------------------------------
 // EHB 5 - Vakantiedagen
 rule "Vakantiedagen"
     when
@@ -268,7 +271,8 @@ rule "Vakantiedagen"
         scoreHolder.addHardConstraintMatch(kcontext, -10);
 end
 
-// EHB 6 - Vakantie Uren (over alle vakken heen)
+
+// EHB  - Vakantie Uren (over alle vakken heen)
 rule "Unavailable Period For All Courses"
     when
         UnavailablePeriodAllCourses($period : period)
@@ -276,18 +280,18 @@ rule "Unavailable Period For All Courses"
     then
         scoreHolder.addHardConstraintMatch(kcontext, -10);
 end
-//--------------------------------------------------------------------------
 
 
-// EHB 7 - maxium aantal lesuren per dag (voor werkcolleges normaal 3, hoorcolleges 2)
+
+
 rule "Maximum aantal lesuren per dag per vak respecteren (bijvoorbeeld blokken van 3u"
 when
     $course: Course( )
-    $leftLecture: Lecture( course == $course, day != null)
+    $dependentLecture: Lecture( course == $course, day != null)
 
 
    $sameLecture: ArrayList(size > $course.urenPerDag)
-        from collect( Lecture( course == $course, day == $leftLecture.day , day != null ));
+        from collect( Lecture( course == $course, day == $dependentLecture.day , day != null ));
 then
 //      System.out.println("3u rule");
       //-1 per vergelijking uit de arraylist ==> bvb: 5 lessen ipv maximum 3 ==> (5 * -1)
@@ -295,27 +299,10 @@ then
  end
 
 
- // EHB 7 - liefst minimum aantal lesuren per dag respecteren(voor werkcolleges normaal 3, hoorcolleges 2)
- rule "Minimum aantal lesuren per dag per vak respecteren (bijvoorbeeld blokken van 3u"
- when
-     $course: Course( )
-     $leftLecture: Lecture( course == $course, day != null)
-
-
-    $sameLecture: ArrayList(size < $course.urenPerDag)
-         from collect( Lecture( course == $course, day == $leftLecture.day , day != null ));
- then
- //      System.out.println("3u rule");
-       //-1 per vergelijking uit de arraylist ==> bvb: 5 lessen ipv maximum 3 ==> (5 * -1)
-       scoreHolder.addSoftConstraintMatch(kcontext, -1 );
-  end
-
-
-
-// EHB 8 - CourseCompactness - zelfde lessen elke dag liefst in blok geven
-rule "CourseCompactness blokken van 2u"
+//"CourseCompactness"
+rule "CourseCompactness"
     when
-        $course : Course(urenPerDag >= 2)
+        $course : Course()
         $lecture: Lecture(course == $course,
                   $day : day, $timeslotIndex : timeslotIndex, period != null)
 
@@ -325,66 +312,18 @@ rule "CourseCompactness blokken van 2u"
 
         not Lecture(course == $course,
             day == $day,
-            timeslotIndex == ($timeslotIndex - 1) || timeslotIndex == ($timeslotIndex +1)
-
+            timeslotIndex == ($timeslotIndex - 1) || timeslotIndex == ($timeslotIndex + 1)
         )
 
     then
+//        System.out.println("CourseCompactness " + $lecture.getLabel() );
+//        System.out.println("$sameLectures = " + $sameLectures);
         scoreHolder.addSoftConstraintMatch(kcontext, -1);
 end
 
 
-// EHB 8.1 - CourseCompactness - zelfde lessen elke dag liefst in blok geven
-rule "CourseCompactness werkcollege 3u"
-    when
-        $course : Course(urenPerDag > 3)
-        $lecture: Lecture(course == $course,
-                  $day : day, $timeslotIndex : timeslotIndex, period != null)
 
-     $sameLectures: ArrayList(size > 2)
-        from collect( Lecture( course == $course, day == $day , day != null ));
-
-
-      not Lecture(course == $course,
-            day == $day,
-            (timeslotIndex == ($timeslotIndex + 2) || timeslotIndex == ($timeslotIndex - 2))
-         )
-
-    then
-        scoreHolder.addSoftConstraintMatch(kcontext, -1);
-end
-
-// EHB 8.2
-rule "CourseCompactness - geen alleenstaande werkcolleges op een dag"
-    when
-        $course : Course(courseType == courseType.Werkcollege)
-
-        $lecture: Lecture(course == $course,
-                  $day : day, $timeslotIndex : timeslotIndex, period != null)
-
-     $sameLectures: ArrayList(size == 1)
-        from collect( Lecture( course == $course, day == $day , day != null ));
-    then
-        scoreHolder.addHardConstraintMatch(kcontext, -1);
-end
-
-
-// EHB 8.2
-rule "CourseCompactness - grote blokken"
-    when
-        $course : Course(urenPerDag == 4)
-
-        $lecture: Lecture(course == $course,
-                  $day : day, $timeslotIndex : timeslotIndex, period != null)
-
-     $sameLectures: ArrayList(size != 4)
-        from collect( Lecture( course == $course, day == $day , day != null ));
-    then
-        scoreHolder.addHardConstraintMatch(kcontext, - Math.abs(4 - $sameLectures.size()));
-end
-
-
-//EHB 9 - Flexibele middagpauze (slots per dag beschreven)
+//EHB - Flexibele middagpauze (slots per dag beschreven)
 rule "middagpauze wanneer er 4 of meer lesuren zijn standpunt leerlingen"
        when
            $day: Day()
@@ -408,7 +347,7 @@ rule "middagpauze wanneer er 4 of meer lesuren zijn standpunt leerlingen"
 
 
 
-//EHB 10 - dependenicies via dependency class almost
+//dependenicies via dependency class almost
 rule "dependenicies via dependency class"
     when
      $course: Course()
@@ -429,7 +368,7 @@ rule "dependenicies via dependency class"
 
 
 
-//EHB 11 - gecombineerde docenten mogen niet samen vallen met individuele docenten"
+//EHB - gecombineerde docenten mogen niet samen vallen met individuele docenten"
 // S.Weemaels kan geen les geven tegelijk met  S.Weemaels-J.Wante
 // J.Wante kan geen les geven tegelijk met S.Weemaels-J.Wante
 rule "gecombineerde docenten"
@@ -445,7 +384,7 @@ end
 
 
 
-//EHB 12 - maximum datum instellen voor een vak                  //nakijken of het niet gaat via een geneste getter zoals Lecture.getday
+//EHB - maximum datum instellen voor een vak                  //nakijken of het niet gaat via een geneste getter zoals Lecture.getday
 // voornamelijk voor eerste of tweede semester te bepalen
 rule "maxium datum voor een les"
     when
@@ -464,7 +403,7 @@ rule "maxium datum voor een les"
 end
 
 
-//EHB 13 - minimum datum instellen voor een vak
+//EHB - minimum datum instellen voor een vak
 // voornamelijk voor eerste of tweede semester te bepalen
 rule "minium datum voor een les"
     when
@@ -480,7 +419,7 @@ end
 
 
 
-//EHB 14 - vrije dag per curriculum voor events
+//EHB - vrije dag per curriculum voor events
 rule "vrije dag per curriculum voor events"
      when
            $unavailableCurriculumDay: UnavailableCurriculumDay($curriculumName: curriculumName, $dayIndex: dayIndex, timeslotIndex == -1 )
@@ -493,7 +432,7 @@ rule "vrije dag per curriculum voor events"
 end
 
 
-//EHB 15 - vrij uur voor curriculum voor events
+//EHB - vrij uur voor curriculum voor events
 rule "vrij uur voor curriculum voor events"
      when
            $unavailableCurriculumDay: UnavailableCurriculumDay($curriculumName: curriculumName, $dayIndex: dayIndex, $timeslotIndex: timeslotIndex, timeslotIndex >= 0 )
@@ -505,6 +444,7 @@ rule "vrij uur voor curriculum voor events"
        System.out.println("vrij uur per curriculum voor events");
            scoreHolder.addHardConstraintMatch(kcontext, -10);
 end
+
 
 
 //ehb
