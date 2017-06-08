@@ -82,8 +82,17 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             setWeekConfiguration();
 
 
-            // Name: ToyExample
+            // Name: EHB
             schedule.setName(readStringValue("Name:"));
+
+            //set language
+            String language = (readStringValue("Language:"));
+            setLanguage(language);
+
+            //set startDate
+            String startDate = readStringValue("StartDate:");
+            setStartDate(startDate);
+
             // Courses: 4
             int courseListSize = readIntegerValue("Courses:");
             // TeacherGroupCount: 1
@@ -106,6 +115,9 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             int unavailable_days_all_Size = readIntegerValue("unavailable_days_all:");
 //             DependentCourses: 8
             int dependentCourseSize = readIntegerValue("DependentCourses:");
+
+
+
 
             //COURSES:
             //save the courses in a map voor hergebruik
@@ -292,7 +304,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                     String target = (lineTokens[nextToken++]);
                     int dayIndex = -1;
                     if(! target.equals("/")){
-                        dayIndex  = getDayIndexFromDateString(target,df);
+                        dayIndex  = getDayIndexFromDateString(target,df, "COURSES minimumdate");
                     }
 
                     course.setFirstPossibleDayIndex(dayIndex);
@@ -304,13 +316,32 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                     String target = (lineTokens[nextToken++]);
                     int dayIndex = Integer.MAX_VALUE;
                     if(! target.equals("/")){
-                        dayIndex  = getDayIndexFromDateString(target,df);
+                        dayIndex  = getDayIndexFromDateString(target,df, "COURSES deadline");
                     }
 
                     course.setLastPossibleDayIndex(dayIndex);
                 }
 
-                //pc //token 7
+                //maxDays 7
+                if(lineTokens.length >= (nextToken + 1)){
+                    int maxWorkingDays = 0;
+                    String target = (lineTokens[nextToken++]);
+                    if(target.equals("/")){
+                        maxWorkingDays = Integer.MAX_VALUE;
+                    }
+                    else if(target.matches("^\\d+$")){
+                        maxWorkingDays = Integer.parseInt(target);
+                    }
+                    else{
+                        GenerateError("COURSES: maxDays: (" + target + ") Is not a valid integer number ()");
+                    }
+
+                    course.setMaxWorkingDaySize(maxWorkingDays);      //token 3  MinWorkingDaySize --> // Lectures of the same course should be spread out into a minimum number of days.
+                }
+                else{
+                    course.setPCNeeded(false);
+                }
+                //pc //token 8
                 if(lineTokens.length >= (nextToken + 1)){
                     course.setPCNeeded(Boolean.parseBoolean(lineTokens[nextToken++]));                 //check of er computers nodig zijn in het lokaal voor dit vak
                 }
@@ -322,7 +353,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
                         //setStudentSize aantal studenten voor dit vak
 
-                //uren per blok //token 8
+                //uren per blok //token 9
                 if(lineTokens.length >= (nextToken + 1)){
                     course.setUrenPerDag(Integer.parseInt(lineTokens[nextToken++]));
                 }
@@ -645,7 +676,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
                 DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
                 String target = (lineTokens[1]);
-                int dayIndex = getDayIndexFromDateString(target,df);
+                int dayIndex = getDayIndexFromDateString(target,df, "UNAVAILABILITY_COURSE");
                 int timeslotIndex = Integer.parseInt(lineTokens[2]);
 
                 Period period = periodMap.get(Arrays.asList(dayIndex, timeslotIndex));
@@ -685,7 +716,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
                 DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
                 String target = (lineTokens[1]);
-                int dayIndex = getDayIndexFromDateString(target, df);
+                int dayIndex = getDayIndexFromDateString(target, df, "UNAVAILABILITY_CURRICULUM");
 
                 //optional period index
                 int timeslotIndex = -1;
@@ -740,7 +771,7 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                 DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
                 String target = (lineTokens[0]);
 
-                int dayIndex = getDayIndexFromDateString(target,df);
+                int dayIndex = getDayIndexFromDateString(target,df, "UNAVAILABLE_HOURS_ALL");
                 int timeslotIndex  = (Integer.parseInt(lineTokens[1]));
 
                 Period period = periodMap.get(Arrays.asList(dayIndex, timeslotIndex));
@@ -790,9 +821,13 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 //                unavailableDay.setDay(i);
 
                 DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-                String target = lineTokens[0];
+                String dateString = lineTokens[0];
                 try {
-                    Date date =  df.parse(target);
+                    Date date =  df.parse(dateString);
+                    int dayIndex = getDayIndexFromDate(date);
+                    if(dayIndex < 0){
+                        GenerateError("The date (" + dateString + ") can not be in the past (under UNAVAILABLE_DAYS_ALL)");
+                    }
                     unavailableDay.setDate(date);
                     unavailableDay.setId((long) 0);
                 } catch (ParseException e) {
@@ -878,13 +913,13 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
         }
 
 
-        private int getDayIndexFromDateString(String dateString, DateFormat df) {
+        private int getDayIndexFromDateString(String dateString, DateFormat df, String cttCategoryTitle) {
             int dayIndex = -1;
             try {
                 Date date = df.parse(dateString);
                 dayIndex = getDayIndexFromDate(date);
                 if(dayIndex < 0){
-                    GenerateError("The date (" + dateString + ") can not be in the past");
+                    GenerateError("The date (" + dateString + ") can not be in the past (under " + cttCategoryTitle + ")");
                 }
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -914,6 +949,33 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
             throw new IllegalArgumentException(message);
         }
 
+        private void setLanguage(String language){
+            if(language.equals("NL")){
+                SchedulerSettings.language = SchedulerSettings.Language.Dutch;
+            }
+            else if(language.equals("ENG")){
+                SchedulerSettings.language = SchedulerSettings.Language.English;
+            }
+            else{
+                GenerateError("Unsupported language ("+language+")");
+            }
+        }
+
+        private void setStartDate(String dateString){
+            DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+            Date startDate = null;
+            try {
+                startDate = df.parse(dateString);
+            } catch (ParseException e) {
+                GenerateError("Startdate not valid ("+ dateString +")");
+                e.printStackTrace();
+            }
+
+            //SchedulerSettings.startDate = new Date(2017-1900,6-1,3);
+            SchedulerSettings.startDate = startDate;
+            SchedulerSettings.startDay = (SchedulerSettings.startDate.getDay() == 0) ? 7: SchedulerSettings.startDate.getDay();
+
+        }
     }
 
 }

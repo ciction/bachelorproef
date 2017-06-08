@@ -1,4 +1,6 @@
 Name: EHB
+Language: NL
+StartDate: 04/06/2017
 Courses: 5
 TeacherGroupCount: 1
 Rooms: 3
@@ -12,12 +14,12 @@ unavailable_days_all: 1
 DependentCourses: 1
 
 COURSES:
-code            teacher                 count   minDays   students  minimumDate deadline    needPc(optional)  HoursPerDay(optional but with pc)
-ABAP_Objects    S.Weemaels              12      1         6         01/03/2017  /           true              4
-Java_EE_NW_WK   K.V.Ryckegem            12      3         3         /           08/03/2017  false
-Java_EE_BIZ     K.V.Ryckegem            6       3         3         /           08/03/2017  false
-Networking      B.Drabbé                12      3         6         /           /           false
-GW_ABAP_JAVA    S.Weemaels_K.V.Ryckegem 8       2         6         /           /           false              4
+code            teacher                 count   minDays   students  minimumDate deadline    maxDays     needPc(optional)  HoursPerDay(optional but with pc)
+ABAP_Objects    S.Weemaels              12      1         6         04/06/2017  /           /           true              4
+Java_EE_NW_WK   K.V.Ryckegem            12      3         3         /           08/06/2017  /           false
+Java_EE_BIZ     K.V.Ryckegem            6       3         3         /           08/06/2017  6           false
+Networking      B.Drabbé                12      3         6         /           /           /           false
+GW_ABAP_JAVA    S.Weemaels_K.V.Ryckegem 8       2         6         /           /           /           false              4
 
 TEACHER_GROUPS:
 groupName                   teachers(n)
@@ -36,23 +38,23 @@ DigX3_Network  3            Java_EE_NW_WK Networking GW_ABAP_JAVA
 
 UNAVAILABILITY_COURSE:
 CourseID        Day(date)    Period
-Java_EE_NW_WK   01/03/2017   0
-Java_EE_NW_WK   01/03/2017   1
+Java_EE_NW_WK   04/06/2017   0
+Java_EE_NW_WK   04/06/2017   1
 
 UNAVAILABILITY_CURRICULUM:
 CurriculumID        Day(date)   timeslot(optional)
-DigX3_Bizit         01/03/2017  0
-DigX3_Bizit         01/03/2017  1
-DigX3_Bizit         01/03/2017  2
+DigX3_Bizit         04/06/2017  0
+DigX3_Bizit         04/06/2017  1
+DigX3_Bizit         04/06/2017  2
 
 UNAVAILABLE_HOURS_ALL:
 Day(date)    Period
-03/03/2017   0
-03/03/2017   1
+04/06/2017   0
+04/06/2017   1
 
 UNAVAILABLE_DAYS_ALL:
 Day(date)
-03/03/2017
+04/06/2017
 
 DEPENDENCIES:
 dependentCourse     courseDependencies(n)

@@ -5,6 +5,8 @@ import java.util.Date;
 /**
  * Created by Christophe on 2/27/2017.
  */
+
+//EHB - rooster settings start date
 public final class SchedulerSettings {
     public enum Language {
         Dutch,
@@ -19,9 +21,9 @@ public final class SchedulerSettings {
     private static final Date today = new Date();
 
 //    public static final Date startDate = today;
-    public static final Date startDate = new Date(year-1900,month-1,day);
+    public static Date startDate = new Date(year-1900,month-1,day);
 
-    public static final int startDay = (startDate.getDay() == 0) ? 7: startDate.getDay();
+    public static int startDay = (startDate.getDay() == 0) ? 7: startDate.getDay();
 
 
 }

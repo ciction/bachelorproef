@@ -20,7 +20,8 @@ import javax.swing.ImageIcon;
 
 public class CommonIcons {
 
-    public static ImageIcon LOCKED_ICON = new ImageIcon(CommonIcons.class.getResource("locked.png"));
+    public static ImageIcon LOCKED_ICON = new ImageIcon(CommonIcons.class.getResource("locked_2.png"));
+    public static ImageIcon UNLOCKED_ICON = new ImageIcon(CommonIcons.class.getResource("unlocked_2.png"));
 
     private CommonIcons() {}
 

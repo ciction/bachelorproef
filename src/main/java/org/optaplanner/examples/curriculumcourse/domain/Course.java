@@ -45,6 +45,8 @@ public class Course extends AbstractPersistable {
     private CourseType courseType;
     private int LectureTime;
     private int minWorkingDaySize;          //  Lectures of the same course should be spread out into a minimum number of days.
+    //EHB
+    private int maxWorkingDaySize;          //  Maximum spreiding van lessen.
     private boolean isPCNeeded = false;
 
     private int firstPossibleDayIndex;
@@ -125,6 +127,15 @@ public class Course extends AbstractPersistable {
     // Lectures of the same course should be spread out into a minimum number of days.
     public void setMinWorkingDaySize(int minWorkingDaySize) {
         this.minWorkingDaySize = minWorkingDaySize;
+    }
+
+    //maximum spreiding van de les
+    public int getMaxWorkingDaySize() {
+        return maxWorkingDaySize;
+    }
+    //maximum spreiding van de les
+    public void setMaxWorkingDaySize(int maxWorkingDaySize) {
+        this.maxWorkingDaySize = maxWorkingDaySize;
     }
 
     public boolean isPCNeeded() {

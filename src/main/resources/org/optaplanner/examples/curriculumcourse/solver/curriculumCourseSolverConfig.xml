@@ -4,16 +4,25 @@
   <solutionClass>org.optaplanner.examples.curriculumcourse.domain.CourseSchedule</solutionClass>
   <entityClass>org.optaplanner.examples.curriculumcourse.domain.Lecture</entityClass>
 
+  <!---->
   <scoreDirectorFactory>
     <scoreDefinitionType>HARD_SOFT</scoreDefinitionType>
     <scoreDrl>org/optaplanner/examples/curriculumcourse/solver/curriculumCourseScoreRules.drl</scoreDrl>
-    <!--<scoreDrl>org/optaplanner/examples/curriculumcourse/solver/curriculumCourseScoreRules_Simple.drl</scoreDrl>-->
-    <!--<scoreDrl>org/optaplanner/examples/curriculumcourse/solver/curriculumCourseScoreRules_single.drl</scoreDrl>-->
+    <!--&lt;!&ndash;<scoreDrl>org/optaplanner/examples/curriculumcourse/solver/curriculumCourseScoreRules_Simple.drl</scoreDrl>&ndash;&gt;-->
+    <!--&lt;!&ndash;<scoreDrl>org/optaplanner/examples/curriculumcourse/solver/curriculumCourseScoreRules_single.drl</scoreDrl>&ndash;&gt;-->
 
-    <!--<assertionScoreDirectorFactory>-->
-      <!--<scoreDrl>org/optaplanner/examples/curriculumcourse/solver/curriculumCourseScoreRules.drl</scoreDrl>-->
-    <!--</assertionScoreDirectorFactory>-->
+    <!--&lt;!&ndash;<assertionScoreDirectorFactory>&ndash;&gt;-->
+      <!--&lt;!&ndash;<scoreDrl>org/optaplanner/examples/curriculumcourse/solver/curriculumCourseScoreRules.drl</scoreDrl>&ndash;&gt;-->
+    <!--&lt;!&ndash;</assertionScoreDirectorFactory>&ndash;&gt;-->
   </scoreDirectorFactory>
+
+<!--
+  <scoreDirectorFactory>
+      <scoreDefinitionClass>org.optaplanner.examples.curriculumcourse.domain.solver.HardSoftScoreHolder_Custom</scoreDefinitionClass>
+    <scoreDrl>org/optaplanner/examples/curriculumcourse/solver/curriculumCourseScoreRules.drl</scoreDrl>
+  </scoreDirectorFactory>
+-->
+
 
   <termination>
     <!--

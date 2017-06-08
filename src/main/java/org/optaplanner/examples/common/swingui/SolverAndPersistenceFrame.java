@@ -25,36 +25,21 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.GroupLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.SwingWorker;
+import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 
 import org.apache.commons.io.FilenameUtils;
+import org.optaplanner.examples.curriculumcourse.domain.CourseSchedule;
+import org.optaplanner.examples.curriculumcourse.domain.Lecture;
 import org.optaplanner.examples.curriculumcourse.swingui.CttEditorFrame;
+import org.optaplanner.examples.curriculumcourse.swingui.CurriculumCoursePanel;
 import org.optaplanner.swing.impl.SwingUtils;
 import org.optaplanner.core.api.domain.solution.Solution;
 import org.optaplanner.core.api.score.FeasibilityScore;
@@ -250,6 +235,8 @@ public class SolverAndPersistenceFrame<Solution_ extends Solution> extends JFram
         cttAction = new CttAction();
         JButton cttButton = new JButton(cttAction);
 
+        JButton lockAll =  new JButton(new LockAllAction());
+        JButton unlockAll =  new JButton(new UnLockAllAction());
 
         openAction = new OpenAction();
         openAction.setEnabled(true);
@@ -278,6 +265,8 @@ public class SolverAndPersistenceFrame<Solution_ extends Solution> extends JFram
 
         toolBarLayout.setHorizontalGroup(toolBarLayout.createSequentialGroup()
                 .addComponent(cttButton)
+                .addComponent(lockAll)
+                .addComponent(unlockAll)
                 .addComponent(importButton)
                 .addComponent(openButton)
                 .addComponent(saveButton)
@@ -287,6 +276,8 @@ public class SolverAndPersistenceFrame<Solution_ extends Solution> extends JFram
                 .addComponent(progressBar, 20, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE));
         toolBarLayout.setVerticalGroup(toolBarLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
                 .addComponent(cttButton)
+                .addComponent(lockAll)
+                .addComponent(unlockAll)
                 .addComponent(importButton)
                 .addComponent(openButton)
                 .addComponent(saveButton)
@@ -303,6 +294,8 @@ public class SolverAndPersistenceFrame<Solution_ extends Solution> extends JFram
         }
 
         public void actionPerformed(ActionEvent e) {
+//            JOptionPane.showMessageDialog(null,"start");
+
             setSolvingState(true);
             Solution_ planningProblem = solutionBusiness.getSolution();
             new SolveWorker(planningProblem).execute();
@@ -499,6 +492,37 @@ public class SolverAndPersistenceFrame<Solution_ extends Solution> extends JFram
 
     }
 
+
+
+    private class LockAllAction extends AbstractAction {
+        private static final String NAME = "All";
+        public LockAllAction() {
+            super(NAME, CommonIcons.LOCKED_ICON);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            CourseSchedule courseSchedule = (CourseSchedule) solutionBusiness.getSolution();
+            for (Lecture lecture : courseSchedule.getLectureList()) {
+                lecture.setLocked(true);
+            }
+            solutionPanel.repaint();
+        }
+    }
+
+    private class UnLockAllAction extends AbstractAction {
+        private static final String NAME = "All";
+        public UnLockAllAction() {
+            super(NAME, CommonIcons.UNLOCKED_ICON);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            CourseSchedule courseSchedule = (CourseSchedule) solutionBusiness.getSolution();
+            for (Lecture lecture : courseSchedule.getLectureList()) {
+                lecture.setLocked(false);
+            }
+            solutionPanel.repaint();
+        }
+    }
     private class CttAction extends AbstractAction {
 
         private static final String NAME = "Ctt";

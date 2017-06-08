@@ -102,8 +102,10 @@ public class CurriculumCoursePanel extends SolutionPanel {
 
     private void defineGrid(CourseSchedule courseSchedule) {
         JButton footprint = SwingUtils.makeSmallButton(new JButton("LinLetGre1-0"));
-//      int footprintWidth = footprint.getPreferredSize().width;
-        int footprintWidth = 150;
+        //int footprintWidth = footprint.getPreferredSize().width;
+
+        //EHB  de breedte van de kolommen in het grid
+        int footprintWidth = 160;
 
         roomsPanel.defineColumnHeaderByKey(HEADER_COLUMN_GROUP1); // Day header
         roomsPanel.defineColumnHeaderByKey(HEADER_COLUMN); // Period header
@@ -201,17 +203,27 @@ public class CurriculumCoursePanel extends SolutionPanel {
                 createTableHeader(new JLabel("Unassigned")));
     }
 
+    //cellen van de verschillende tabs opvullen
     private void fillLectureCells(CourseSchedule courseSchedule) {
         TangoColorFactory tangoColorFactory = new TangoColorFactory();
+
+//
+//        //grijze cellen toevoegen
+//        for (Room room : courseSchedule.getRoomList()) {
+//            for (Period period : courseSchedule.getPeriodList()) {
+//                roomsPanel.addCell(room, period,CreateEmptyCell());
+//            }
+//        }
+
         for (Lecture lecture : courseSchedule.getLectureList()) {
             Color lectureColor = tangoColorFactory.pickColor(lecture.getCourse());
             roomsPanel.addCell(lecture.getRoom(), lecture.getPeriod(),
-                    createButton(lecture, lectureColor));
+                    createCustomLabelButton(lecture, lectureColor));
             teachersPanel.addCell(lecture.getTeacher(), lecture.getPeriod(),
-                    createButton(lecture, lectureColor));
+                    createCustomLabelButton(lecture, lectureColor));
             for (Curriculum curriculum : lecture.getCurriculumList()) {
                 curriculaPanel.addCell(curriculum, lecture.getPeriod(),
-                        createButton(lecture, lectureColor));
+                        createCustomLabelButton(lecture, lectureColor));
             }
         }
     }
@@ -227,7 +239,7 @@ public class CurriculumCoursePanel extends SolutionPanel {
 
 
     //hier worden de buttons aangemaakt, elke course is eigenlijk een button
-//    private JButton createButton(Lecture lecture, Color color) {
+//    private JButton createCustomLabelButton(Lecture lecture, Color color) {
 //
 //        JButton button = SwingUtils.makeSmallButton(new JButton(new LectureAction(lecture)));
 //        button.setBackground(color);
@@ -238,10 +250,10 @@ public class CurriculumCoursePanel extends SolutionPanel {
 //    }
 
 
-    private JLabel createButton(final Lecture lecture, Color color) {
-
+    //EHB - Rooster
+    private JLabel createCustomLabelButton(final Lecture lecture, Color color) {
         JLabel label = new JLabel(lecture.getLabel(), SwingConstants.CENTER);
-        LineBorder line = new LineBorder(color, 5, true); // color, thickness, rounded
+        LineBorder line = new LineBorder(color.darker(), 1, true); // color, thickness, rounded
         label.setBorder(line);
 
         final LectureAction lectureAction = new LectureAction(lecture);
@@ -271,8 +283,14 @@ public class CurriculumCoursePanel extends SolutionPanel {
         return label;
     }
 
+    private JLabel CreateEmptyCell() {
+        JLabel label = new JLabel("", SwingConstants.CENTER);
+        LineBorder line = new LineBorder(Color.lightGray, 1, false); // color, thickness, rounded
+        label.setBorder(line);
+        return label;
+    }
 
-    private class LectureAction extends AbstractAction {
+        private class LectureAction extends AbstractAction {
 
         private Lecture lecture;
 
@@ -321,6 +339,8 @@ public class CurriculumCoursePanel extends SolutionPanel {
                         return;
                     }
                     lecture.setLocked(toLocked);
+
+
                 }
                 solverAndPersistenceFrame.resetScreen();
             }

@@ -17,8 +17,9 @@
 package org.optaplanner.examples.curriculumcourse.solver;
     dialect "java"
 
-import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScoreHolder;
+//import org.optaplanner.examples.curriculumcourse.domain.solver.HardSoftScoreHolder_Custom;
 
+import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScoreHolder;
 import org.optaplanner.examples.curriculumcourse.domain.Course;
 import org.optaplanner.examples.curriculumcourse.domain.Curriculum;
 import org.optaplanner.examples.curriculumcourse.domain.CourseSchedule;
@@ -44,9 +45,11 @@ import  org.optaplanner.examples.curriculumcourse.domain.My_messageClass;
 import java.util.ArrayList
 import java.util.HashMap
 import javassist.compiler.Lex
+import javax.swing.JOptionPane
 
 //score holder
 global HardSoftScoreHolder scoreHolder;
+//global HardSoftScoreHolder_Custom scoreHolder;
 
 
 // ############################################################################
@@ -526,8 +529,8 @@ end
 //ehb
 rule "maximum WorkingDays"
     when
-        $course : Course($minWorkingDaySize : minWorkingDaySize)
-        $dayCount : Number(intValue > 6) from accumulate(
+        $course : Course($maxWorkingDaySize : maxWorkingDaySize)
+        $dayCount : Number(intValue > $maxWorkingDaySize) from accumulate(
             $day : Day()
             and exists Lecture(course == $course, day == $day),
             count($day)
@@ -546,3 +549,19 @@ rule "geen les tijdensweekends"
     then
         scoreHolder.addHardConstraintMatch(kcontext, -10);
 end
+
+
+/*
+rule "score saver"
+    when
+        Lecture()
+        $courseSchedule: CourseSchedule()
+    then
+    System.out.println("scoreHolder = " + scoreHolder);
+    System.out.println("$courseSchedule = " + $courseSchedule);
+
+//    System.out.println("$CourseSchedule.scoreHolder.hardScore  = " + $CourseSchedule.getScore().getHardScore() );
+//    if(scoreHolder.getHardScore() < -100)
+//    JOptionPane.showMessageDialog(null,"below 100");
+
+end*/
