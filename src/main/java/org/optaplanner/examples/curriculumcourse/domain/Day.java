@@ -29,7 +29,8 @@ public class Day extends AbstractPersistable {
 
     private static  String[] WEEKDAYS = {"Mo", "Tu", "We", "Th", "Fr", "Sat", "Sun"};
     private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-    private static int DayInMilliSeconds = 1000 * 60 * 60 * 24;
+    //ehb DayInMilliSeconds van int naar long (overflow --> teveel dagen)
+    private static long DayInMilliSeconds = 1000 * 60 * 60 * 24;
     private static final Date today = new Date();
     private static boolean isInitialized = false;
 

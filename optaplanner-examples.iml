@@ -8,6 +8,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/target/generated-sources/annotations" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/data/cheaptime" />
       <excludeFolder url="file://$MODULE_DIR$/data/coachshuttlegathering" />
       <excludeFolder url="file://$MODULE_DIR$/data/dinnerparty" />
@@ -53,7 +54,9 @@
       <excludeFolder url="file://$MODULE_DIR$/src/main/resources/org/optaplanner/examples/travelingtournament" />
       <excludeFolder url="file://$MODULE_DIR$/src/main/resources/org/optaplanner/examples/tsp" />
       <excludeFolder url="file://$MODULE_DIR$/src/main/resources/org/optaplanner/examples/vehiclerouting" />
-      <excludeFolder url="file://$MODULE_DIR$/target" />
+      <excludeFolder url="file://$MODULE_DIR$/target/classes" />
+      <excludeFolder url="file://$MODULE_DIR$/target/test" />
+      <excludeFolder url="file://$MODULE_DIR$/target/test-classes" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
