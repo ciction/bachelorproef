@@ -177,6 +177,23 @@ rule "roomStability"
 end
 
 
+rule "uur Stabiliteit"
+    when
+        $course : Course()
+        $periodCount : Number(intValue > $course.urenPerDag) from accumulate(
+            $period : Period($timeslotIndex : timeslot.timeslotIndex, $day: day)
+            and exists Lecture(course == $course, timeslotIndex == $timeslotIndex, day > $day),
+            count($period)
+        )
+
+    then
+    System.out.println("$periodCount = " + $periodCount);
+            scoreHolder.addSoftConstraintMatch(kcontext, -1);
+end
+
+
+
+
 
 
 // ############################################################################
@@ -195,9 +212,23 @@ rule "Geen werkColleges in de voormiddag"
         $course : Course(courseType == courseType.Werkcollege)
         //{"08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"};
         //eerste 4 lesuren geen abap
-        Lecture(course == $course, timeslotIndex < 4 )
+        Lecture(course == $course, timeslotIndex < 5 )
     then
-        scoreHolder.addSoftConstraintMatch(kcontext, -2);
+        scoreHolder.addSoftConstraintMatch(kcontext, -1);
+end
+
+// EHB 1 - Werkcolleges best niet in de voormiddag
+rule "Geen werkColleges in de voormiddag B"
+    when
+        $course : Course(courseType == courseType.Werkcollege)
+        $day: Day()
+
+        $lowestTimeIndex : Number() from accumulate(Lecture (course == $course,
+                                                       $timeslotIndex: timeslotIndex, day == $day, period != null ),
+                                                       min($timeslotIndex));
+        Lecture(course == $course, $lowestTimeIndex < 5 )
+    then
+        scoreHolder.addHardConstraintMatch(kcontext,  $lowestTimeIndex.intValue() - 5);
 end
 
 //--------------------------------------------------------------------------
@@ -294,7 +325,8 @@ when
 then
 //      System.out.println("3u rule");
       //-1 per vergelijking uit de arraylist ==> bvb: 5 lessen ipv maximum 3 ==> (5 * -1)
-      scoreHolder.addSoftConstraintMatch(kcontext, -1 );
+      scoreHolder.addHardConstraintMatch(kcontext, -1 );
+      scoreHolder.addSoftConstraintMatch(kcontext, - $sameLecture.size());
  end
 
 
@@ -336,54 +368,180 @@ rule "CourseCompactness blokken van 2u"
         scoreHolder.addSoftConstraintMatch(kcontext, -1);
 end
 
+//
+//// EHB 8.1 - CourseCompactness - zelfde lessen elke dag liefst in blok geven
+//rule "CourseCompactness werkcollege 3u"
+//    when
+//        $course : Course(urenPerDag > 3)
+//        $lecture: Lecture(course == $course,
+//                  $day : day, $timeslotIndex : timeslotIndex, period != null)
+//
+//     $sameLectures: ArrayList(size > 2)
+//        from collect( Lecture( course == $course, day == $day , day != null ));
+//
+//
+//      not Lecture(course == $course,
+//            day == $day,
+//            (timeslotIndex == ($timeslotIndex + 2) || timeslotIndex == ($timeslotIndex - 2))
+//         )
+//
+//    then
+//        scoreHolder.addSoftConstraintMatch(kcontext, -1);
+//end
 
-// EHB 8.1 - CourseCompactness - zelfde lessen elke dag liefst in blok geven
-rule "CourseCompactness werkcollege 3u"
+// EHB 8.1.2
+rule "CourseCompactness - geen alleenstaande blokken op een dag"
     when
-        $course : Course(urenPerDag > 3)
+        $course : Course(urenPerDag > 2)
+
         $lecture: Lecture(course == $course,
                   $day : day, $timeslotIndex : timeslotIndex, period != null)
 
-     $sameLectures: ArrayList(size > 2)
+     $sameLectures: ArrayList(size < $course.urenPerDag)
         from collect( Lecture( course == $course, day == $day , day != null ));
-
-
-      not Lecture(course == $course,
-            day == $day,
-            (timeslotIndex == ($timeslotIndex + 2) || timeslotIndex == ($timeslotIndex - 2))
-         )
-
     then
+        scoreHolder.addHardConstraintMatch(kcontext,  $sameLectures.size() -  $course.getUrenPerDag() );
+end
+
+
+// EHB 8.2
+//rule "CourseCompactness - grote blokken"
+//    when
+//        $course : Course(urenPerDag == 4)
+//
+//        $lecture: Lecture(course == $course,
+//                  $day : day, $timeslotIndex : timeslotIndex, period != null)
+//
+//     $sameLectures: ArrayList(size != 4)
+//        from collect( Lecture( course == $course, day == $day , day != null ));
+//    then
+//        scoreHolder.addHardConstraintMatch(kcontext, - Math.abs(4 - $sameLectures.size()));
+//end
+
+        //
+        ////EHB 8.2.2 blokken vormen per dag  09/06/2017 update
+        //rule "CourseCompactness - grote blokken verkeerde les ertussen"
+        //    when
+        //        $course : Course(urenPerDag > 2)
+        //        $lectureLeft: Lecture(course == $course, $dayLeft : day, $timeslotIndexLeft : timeslotIndex, period != null)
+        //        $lectureRight: Lecture(course == $course, $dayRight : day,
+        //                                                  $dayLeft == $dayRight,
+        //                                                  $dayLeft == $dayRight,
+        //                                                  timeslotIndex > $timeslotIndexLeft + 1,
+        //                                                  period != null)
+        //
+        //      $wrongLeft : Lecture(course != $course, $dayLeft == day, timeslotIndex == $timeslotIndexLeft + 1, period != null)
+        //    then
+        ////        scoreHolder.addSoftConstraintMatch(kcontext, -($lectureRight.getTimeslotIndex() - $lectureLeft.getTimeslotIndex() + 1));
+        //    scoreHolder.addSoftConstraintMatch(kcontext, -1);
+        //
+        //end
+        //    //
+        ////EHB 8.2.2 - 2 blokken vormen per dag  09/06/2017 update
+        //rule "CourseCompactness - grote blokken geen les ertussen"
+        //when
+        //    $course : Course(urenPerDag > 2)
+        //    $lectureLeft: Lecture(course == $course, $dayLeft : day, $timeslotIndexLeft : timeslotIndex, period != null)
+        //    $lectureRight: Lecture(course == $course, $dayRight : day,
+        //                                              $dayLeft == $dayRight,
+        //                                              $dayLeft == $dayRight,
+        //                                              timeslotIndex > $timeslotIndexLeft + 1,
+        //                                              period != null)
+        //
+        //  $period : Period(timeslot.timeslotIndex == $timeslotIndexLeft + 1, day == $dayLeft)
+        //  not Lecture(period == $period)
+        //then
+        ////    scoreHolder.addSoftConstraintMatch(kcontext, -($lectureRight.getTimeslotIndex() - $lectureLeft.getTimeslotIndex() + 1));
+        //    scoreHolder.addSoftConstraintMatch(kcontext, -1);
+        //end
+
+
+//EHB 8.2.2 blokken vormen per dag  09/06/2017 update
+rule "CourseCompactness - grote blokken verkeerde les ertussen 3u A1"
+    when
+        $course : Course(urenPerDag == 3)
+        $day: Day()
+
+        $lowestTimeIndex : Number() from accumulate(Lecture (course == $course,
+                                                       $timeslotIndex: timeslotIndex, day == $day, period != null ),
+                                                       min($timeslotIndex));
+
+        $firstCourseOfTheDay: Lecture(course == $course, $dayLeft : day == $day, period != null, timeslotIndex == $lowestTimeIndex)
+        $secondCourseOfTheDay: Lecture(course != $course, day == $day, timeslotIndex ==  $lowestTimeIndex + 1)
+    then
+        scoreHolder.addHardConstraintMatch(kcontext, -1);
         scoreHolder.addSoftConstraintMatch(kcontext, -1);
 end
 
-// EHB 8.2
-rule "CourseCompactness - geen alleenstaande werkcolleges op een dag"
+rule "CourseCompactness - grote blokken verkeerde les ertussen 3u A2"
     when
-        $course : Course(courseType == courseType.Werkcollege)
+        $course : Course(urenPerDag == 3)
+        $day: Day()
 
-        $lecture: Lecture(course == $course,
-                  $day : day, $timeslotIndex : timeslotIndex, period != null)
+        $lowestTimeIndex : Number() from accumulate(Lecture (course == $course,
+                                                       $timeslotIndex: timeslotIndex, day == $day, period != null ),
+                                                       min($timeslotIndex));
 
-     $sameLectures: ArrayList(size == 1)
-        from collect( Lecture( course == $course, day == $day , day != null ));
+        $firstCourseOfTheDay: Lecture(course == $course, $dayLeft : day == $day, period != null, timeslotIndex == $lowestTimeIndex)
+
+         $period : Period(timeslot.timeslotIndex == $lowestTimeIndex + 1, day == $day)
+         not Lecture(period == $period)
     then
         scoreHolder.addHardConstraintMatch(kcontext, -1);
 end
 
 
-// EHB 8.2
-rule "CourseCompactness - grote blokken"
+
+//EHB 8.2.2 blokken vormen per dag  09/06/2017 update
+rule "CourseCompactness - grote blokken verkeerde les ertussen 2 3u B1"
     when
-        $course : Course(urenPerDag == 4)
+        $course : Course(urenPerDag == 3)
+        $day: Day()
 
-        $lecture: Lecture(course == $course,
-                  $day : day, $timeslotIndex : timeslotIndex, period != null)
+        $lowestTimeIndex : Number() from accumulate(Lecture (course == $course,
+                                                       $timeslotIndex: timeslotIndex, day == $day, period != null ),
+                                                       min($timeslotIndex));
 
-     $sameLectures: ArrayList(size != 4)
-        from collect( Lecture( course == $course, day == $day , day != null ));
+        $firstCourseOfTheDay: Lecture(course == $course, $dayLeft : day == $day, period != null, timeslotIndex == $lowestTimeIndex)
+        $thirdCourseOfTheDay: Lecture(course != $course, day == $day, timeslotIndex ==  $lowestTimeIndex + 2)
     then
-        scoreHolder.addHardConstraintMatch(kcontext, - Math.abs(4 - $sameLectures.size()));
+        scoreHolder.addHardConstraintMatch(kcontext, -1);
+        scoreHolder.addSoftConstraintMatch(kcontext, -1);
+end
+
+//EHB 8.2.2 blokken vormen per dag  09/06/2017 update
+rule "CourseCompactness - grote blokken verkeerde les ertussen 2 3u B2"
+    when
+        $course : Course(urenPerDag == 3)
+        $day: Day()
+
+        $lowestTimeIndex : Number() from accumulate(Lecture (course == $course,
+                                                       $timeslotIndex: timeslotIndex, day == $day, period != null ),
+                                                       min($timeslotIndex));
+
+        $firstCourseOfTheDay: Lecture(course == $course, $dayLeft : day == $day, period != null, timeslotIndex == $lowestTimeIndex)
+
+        $period : Period(timeslot.timeslotIndex == $lowestTimeIndex + 2, day == $day)
+        not Lecture(period == $period)
+    then
+        scoreHolder.addHardConstraintMatch(kcontext, -1);
+
+end
+
+
+
+// EHB 8.3 - per week spreiden
+rule "Lessen verspreiden over weken"
+    when
+        $course : Course()
+       $leftLecture : Lecture(course == $course, $period : period, period != null)
+       $rightLecture : Lecture(course == $course, day > $leftLecture.day ,
+                                               ($leftLecture.day.dayIndex + 7) > day.dayIndex  ,
+                                                period != null, this != $leftLecture)
+
+
+    then
+        scoreHolder.addHardConstraintMatch(kcontext, -(7 - ($rightLecture.getDay().getDayIndex() - $leftLecture.getDay().getDayIndex() )));
 end
 
 
@@ -415,7 +573,7 @@ rule "middagpauze wanneer er 4 of meer lesuren zijn standpunt leerlingen"
 rule "dependenicies via dependency class"
     when
      $course: Course()
-     $courseDependency: CourseDependency( dependentCourse == $course.code, $dependentHours: dependentHours);
+     $courseDependency: CourseDependency( dependentCourse == $course.code, $dependentHours: dependentHours, $course.code != null);
      $dependentLecture: Lecture( course == $course, $dependentLecturetimeslotIndex: timeslotIndex,  period != null)
 
      $collectedDependencyLectures: ArrayList(size < $dependentHours)
@@ -435,7 +593,7 @@ rule "dependenicies via dependency class"
 //EHB 11 - gecombineerde docenten mogen niet samen vallen met individuele docenten"
 // S.Weemaels kan geen les geven tegelijk met  S.Weemaels-J.Wante
 // J.Wante kan geen les geven tegelijk met S.Weemaels-J.Wante
-rule "gecombineerde docenten"
+rule "gecombineerde docenten niet tegelijk met individuele"
     when
        $teacherGroup: TeacherGroup($groupedTeachers: groupedTeachers, $individualTeacher:individualTeacher)
        $lectureIndividual: Lecture(teacher.code == $individualTeacher, $period : period, period != null)
@@ -444,6 +602,52 @@ rule "gecombineerde docenten"
     then
         scoreHolder.addHardConstraintMatch(kcontext, -1);
 end
+
+rule "gecombineerde docenten in de voormiddag (blokken van 4 normaal)"
+    when
+       $day: Day()
+       $teacherGroup: TeacherGroup($groupedTeachers: groupedTeachers, $individualTeacher:individualTeacher)
+       $lectureIndividual: Lecture(teacher.code == $individualTeacher,  day == $day, period != null)
+       $lectureGrouped: Lecture(teacher.code == $groupedTeachers,  day == $day, timeslotIndex > 4, period != null)
+    then
+        scoreHolder.addHardConstraintMatch(kcontext, -1);
+end
+
+rule "gecombineerde docenten - componenten in de namiddag "
+    when
+           $day: Day()
+        $teacherGroup: TeacherGroup($groupedTeachers: groupedTeachers, $individualTeacher:individualTeacher)
+        $lectureIndividual: Lecture(teacher.code == $individualTeacher,  day == $day, timeslotIndex < 4, period != null)
+        $lectureGrouped: Lecture(teacher.code == $groupedTeachers,  day == $day, period != null)
+    then
+        scoreHolder.addHardConstraintMatch(kcontext, -1);
+end
+
+////EHB 11 - gecombineerde docenten mogen niet samen vallen met individuele docenten
+//// op bais van het eerste uur van de respectievelijke vakken
+//rule "gecombineerde docenten eerste uur"
+//    when
+//       $teacherGroup: TeacherGroup($groupedTeachers: groupedTeachers, $individualTeacher:individualTeacher)
+//       $day: Day()
+////       $lectureGrouped: Lecture(teacher.code == $groupedTeachers, period != null)
+//
+//
+//        $firstIndividualLectureIndex : Number() from accumulate(Lecture (teacher.code == $individualTeacher,
+//                                  $timeslotIndex: timeslotIndex, day == $day, period != null ),
+//                                  min($timeslotIndex));
+//
+//        $firstgroupLectureIndex : Number() from accumulate(Lecture (teacher.code == $groupedTeachers,
+//                                  $timeslotIndex: timeslotIndex, day == $day, period != null ),
+//                                  min($timeslotIndex));
+//
+//       eval($firstIndividualLectureIndex.intValue() <  $firstgroupLectureIndex.intValue() + 5)
+////       eval($firstIndividualLectureIndex <  $firstgroupLectureIndex + $lectureGrouped.course.urenPerDag)
+//
+//    then
+////        scoreHolder.addHardConstraintMatch(kcontext, $firstIndividualLectureIndex.intValue() -  $firstgroupLectureIndex.intValue() + $lectureGrouped.getCourse().getUrenPerDag());
+//        scoreHolder.addHardConstraintMatch(kcontext, $firstIndividualLectureIndex.intValue() - 5);
+//end
+
 
 
 
@@ -549,6 +753,7 @@ rule "geen les tijdensweekends"
     then
         scoreHolder.addHardConstraintMatch(kcontext, -10);
 end
+
 
 
 /*

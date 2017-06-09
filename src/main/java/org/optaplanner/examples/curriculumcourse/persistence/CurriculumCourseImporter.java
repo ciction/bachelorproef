@@ -152,28 +152,21 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
 
 
             //DEPENDENCIES:
-            readDependencies(courseMap, dependentCourseSize);
+            readDependencies(schedule, courseMap, dependentCourseSize);
 
             readEmptyLine();
             readConstantLine("END\\.");
 
 
             //todo remove hardcoded
-            List<CourseDependency> CourseDependenciesList = new ArrayList<CourseDependency>();
-            CourseDependency courseDependency = new CourseDependency();
-            courseDependency.setDependentCourse("ABAP_Objects");
-            courseDependency.setDependency("Java_EE_BIZ");
-            courseDependency.setDependentHours(2);
-            CourseDependenciesList.add(courseDependency);
-
-
-            courseDependency = new CourseDependency();
-            courseDependency.setDependentCourse("ABAP_Objects");
-            courseDependency.setDependency("Networking");
-            courseDependency.setDependentHours(1);
-            CourseDependenciesList.add(courseDependency);
-
-            schedule.setCourseDependencyList(CourseDependenciesList);
+//            List<CourseDependency> CourseDependenciesList = new ArrayList<CourseDependency>();
+//            CourseDependency courseDependency = new CourseDependency();
+//            courseDependency.setDependentCourse("ABAP_Objects");
+//            courseDependency.setDependency("Java_EE_BIZ");
+//            courseDependency.setDependentHours(2);
+//            CourseDependenciesList.add(courseDependency);
+//
+//de
             //todo end
             //-----------------------
 
@@ -844,15 +837,15 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
         }
 
 
-        private void readDependencies( Map<String, Course> courseMap, int dependentCourseSize)
+        private void readDependencies( CourseSchedule schedule, Map<String, Course> courseMap, int dependentCourseSize)
 
                 throws IOException {
             readEmptyLine();
             readConstantLine("DEPENDENCIES:");
             skipInfoLine();
-//            List<UnavailablePeriodPenalty> penaltyList = new ArrayList<UnavailablePeriodPenalty>(
-//                    unavailablePeriodPenaltyListSize);
+            List<CourseDependency> courseDependencies  = new ArrayList<CourseDependency>(dependentCourseSize);
             for (int i = 0; i < dependentCourseSize; i++) {
+                CourseDependency courseDependency = new CourseDependency();
 
                 String line = bufferedReader.readLine();
                 String[] lineTokens = splitBySpacesOrTabs(line);
@@ -863,34 +856,18 @@ public class CurriculumCourseImporter extends AbstractTxtSolutionImporter {
                             + ") is expected to contain at least 2 tokens.");
                 }
 
-                //course zoeken waavan de dependencies moeten worden aangepast
-                Course dependentCourse = courseMap.get(lineTokens[0]);
-
-                //dependencies aanmaken
-                List<String> courseDependencies = new ArrayList<String>();
-                Map<String,Integer> courseDependencyCount = new HashMap<String, Integer>();
-
-                for (int j = 1; j < lineTokens.length; j++) {
-                    String dependencyName = lineTokens[j];
-                    Course dependencyCourse = courseMap.get(dependencyName);
-                    courseDependencies.add(dependencyName);
-
-                    //todo change hardcoded dependency count
-                    courseDependencyCount.put(dependencyName, 2);
-
-                    //throw error if the dependency course does not exist
-                    if (dependencyCourse == null) {
-                        throw new IllegalArgumentException("The requested dependency on line: (" + line + ") " +
-                                "- dependency:'" + dependencyName + "' does not exist.");
-                    }
+                courseDependency.setDependentCourse(lineTokens[0]);
+                courseDependency.setDependency(lineTokens[1]);
+                int hours = Integer.MAX_VALUE;
+                if (lineTokens.length > 2) {
+                    hours = Integer.parseInt(lineTokens[2]);
                 }
+                courseDependency.setDependentHours(hours);
 
-
-                //save dependencies in the dependent course
-                dependentCourse.setCourseDependencies(courseDependencies);
-                dependentCourse.setCourseDependencyCount(courseDependencyCount);
-                System.out.println("temp");
+                courseDependencies.add(courseDependency);
             }
+
+            schedule.setCourseDependencyList(courseDependencies);
         }
 
         private void createLectureList(CourseSchedule schedule) {

@@ -30,7 +30,9 @@
       ge0ffrey's main pc: 429
       ge0ffrey's old pc: 1152
     -->
-    <secondsSpentLimit>429</secondsSpentLimit>
+    <!--<secondsSpentLimit>429</secondsSpentLimit>-->
+    <daysSpentLimit>5</daysSpentLimit>
+
     <!--<bestScoreLimit>-0hard/-999999soft</bestScoreLimit>-->
   </termination>
   <constructionHeuristic>
